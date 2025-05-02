@@ -8,6 +8,7 @@ class Field:
         self.columns = columns
         self.grid = []
         self.faller_lst = []
+        self.virus_lst = []
     
         for row in range(rows):
             row = []
@@ -30,7 +31,7 @@ class Field:
             middle_col = (self.columns // 2) - 1
         fall = True 
         row_pos = 1
-        a_faller = Faller(row_pos, middle_col, row_pos, middle_col+1, command_lst[1], command_lst[2], faller_state = self.FALLING)
+        a_faller = Vitamin(row_pos, middle_col, row_pos, middle_col+1, command_lst[1], command_lst[2], faller_state = self.FALLING)
         while (row_pos < self.rows-1) and fall:
             #check if there's something in the next position. If there is, set fall to false.
             if self.grid[row_pos+1][middle_col] != '   ' or self.grid[row_pos+1][middle_col+1] != '   ':
@@ -61,10 +62,58 @@ class Field:
             a_faller.set_faller_state(self.FREEZING)
         
         self.faller_lst.append(a_faller)
-        a_faller.set_faller_position(row_pos, middle_col) 
+        a_faller.set_faller_position(row_pos, middle_col, row_pos, middle_col+1) 
 
     def matches(self):
-        pass
+        num_of_matched_rows = 1
+        num_of_matched_columns = 1
+        for row in range(self.rows):
+            for column in range (self.columns):
+                if self.grid[row][column] != '   ':
+                    print(f"CURRENT_ROW{row}")
+                    print(f"CURRENT_COLUMN{column}")
+                    color = self.grid[row][column].upper().strip()
+                    print(f"CURRENT_COLOR{color}")
+                    '''next_column = column + 1
+                    while next_column < self.columns:
+                        next_color = self.grid[row][next_column].upper()
+                        if next_color == color:
+                            next_column += 1
+                            num_of_matched_columns += 1
+                        else:
+                            break
+                    if num_of_matched_columns == 4:
+                        pass'''
+                    num_of_matched_rows = 1
+                    next_row = row + 1
+                    while next_row < self.rows:
+                        next_color = self.grid[next_row][column].upper().strip()
+                        if next_color == color:
+                            next_row += 1
+                            num_of_matched_rows += 1
+                        else:
+                            break
+                    if num_of_matched_rows == 4:
+                        for i in range(num_of_matched_rows):
+                            self.grid[row-1+i][column] = f"*{self.grid[row-1+i][column]}*"
+                        self.print_grid()
+                        for i in range(num_of_matched_rows):
+                            self.grid[row-1+i][column] = f"   "
+                    break
+        self.print_grid()
+        
+        
+        '''for a_faller in self.faller_lst:
+            if a_faller.get_faller_state() == self.LANDING:
+                break
+        match_row, match_column = a_faller.get_faller_position
+        for row in range(self.rows):
+            column = 0
+            while column < self.columns:
+                #if'''
+
+
+        #self.grid[][]
     
     def move_right(self):
         for a_faller in self.faller_lst:
@@ -72,22 +121,24 @@ class Field:
                 move_faller = a_faller
                 break
 
-        row, column = move_faller.get_faller_position()  
+        row, column, second_row, second_column= move_faller.get_faller_position()  
         if move_faller.get_direction() == 'vertical':
-            shift_row = row
-            shift_column = column + 1 
-            self.grid[shift_row][shift_column] = self.grid[row][column]
-            self.grid[shift_row-1][shift_column] = self.grid[row-1][column]
+            shift_left_row = row
+            shift_left_column = column + 1 
+            shift_right_row = second_row
+            shift_right_column = second_column + 1
+            self.grid[shift_left_row][shift_left_column] = self.grid[row][column]
+            self.grid[shift_right_row][shift_right_column] = self.grid[second_row][second_column]
             self.grid[row][column] = '   '
-            self.grid[row-1][column] = '   '
+            self.grid[second_row][second_column] = '   '
         else:
             #add horizontal 
             pass
     
-        a_faller.set_faller_position(shift_row, shift_column)
+        a_faller.set_faller_position(shift_left_row, shift_left_column, shift_right_row, shift_right_column)
         self.print_grid()
-    
-    def rotate_faller(self):
+
+    def rotate_faller_clockwise(self):
         rotate_faller  = None
 
         for a_faller in self.faller_lst:
@@ -99,24 +150,24 @@ class Field:
             return None
     
         #faller's colors switch and direction switches 
-        rotate_row, rotate_column = rotate_faller.get_faller_position()  
+        rotate_row, rotate_column, second_row, second_column = rotate_faller.get_faller_position()  
         
-        '''for row in range(self.rows):
-            for column in range(self.columns):
-                cell = self.grid[row][column]
-                 # If the cell contains part of a faller, clear it
-                if cell.startswith('|') or cell.startswith('['):
-                    self.grid[row][column] = '   '
-        rotate_faller.rotate_clockwise()'''
         #self.grid[rotate_row][rotate_column] = LEFT CAPSULE
         #clear current cells before rotating 
         if rotate_faller.get_direction() == 'horizontal':
-            #only RIGHT capsule rotates 
-            self.grid[rotate_row-1][rotate_column] = f"|{self.grid[rotate_row][rotate_column+1][2:]}"
-            self.grid[rotate_row][rotate_column] = f"{self.grid[rotate_row][rotate_column]}|"
-            self.grid[rotate_row][rotate_column+1] = '   '
+            old_left_capsule = self.grid[rotate_row][rotate_column]
+            old_right_capsule = self.grid[second_row][second_column]
+            new_left_row = rotate_row-1
+            new_left_column = rotate_column
+            new_right_row = rotate_row
+            new_right_column = rotate_column
+            #old left capsule position is equal to right capsule 
+            self.grid[rotate_row][rotate_column] = f"|{old_right_capsule[2:]}"
+            self.grid[rotate_row-1][rotate_column] = f"{old_left_capsule}|"
+            #clear right capsule 
+            self.grid[second_row][second_column] = '   '
             a_faller.set_direction('vertical')
-            a_faller.set_faller_position(rotate_row, rotate_column)
+            a_faller.set_faller_position(new_left_row, new_left_column, new_right_row, new_right_column)
             #may need right capsule's row and column
 
         elif rotate_faller.get_direction() == 'vertical': #TBD
@@ -125,37 +176,62 @@ class Field:
 
         self.print_grid()
 
-        '''#row and column after rotation
-        after_row, after_col = rotate_faller.get_faller_position()
 
-        if rotate_faller.direction == 'horizontal':
-            if after_col + 1 < self.columns:
-                self.grid[after_row][after_col] = f"|{rotate_faller.left_color}--"
-                self.grid[after_row][after_col+1] = f"{rotate_faller.right_color}|"
+
+    def rotate_faller_counter_clockwise(self):
+        rotate_faller  = None
+
+        for a_faller in self.faller_lst:
+            if a_faller.get_faller_state() == self.LANDING or a_faller.get_faller_state() == self.FALLING:
+                rotate_faller = a_faller
+                break
+                
+        if not rotate_faller:
+            return None
+    
+        #faller's colors switch and direction switches 
+        rotate_row, rotate_column, second_row, second_column = rotate_faller.get_faller_position()  
         
-        elif rotate_faller.direction == 'vertical':
-            self.grid[after_row-1][after_col] = f"|{rotate_faller.right_color}|"
-            self.grid[after_row][after_col] = f"|{rotate_faller.left_color}|"
-        
+        #self.grid[rotate_row][rotate_column] = LEFT CAPSULE
+        #clear current cells before rotating 
+        if rotate_faller.get_direction() == 'horizontal':
+            '''left_capsule = self.grid[rotate_row][rotate_column]
+            right_capsule = self.grid[second_row][second_column]
+            new_right_capsule_row = rotate_row-1
+            new_right_capsule_column = rotate_column
+            new_left_capsule_row = rotate_row
+            self.grid[new_right_capsule_row][new_right_capsule_column] = f"|{right_capsule[2:]}"
+            self.grid[rotate_row][rotate_column] = f"{self.grid[rotate_row][rotate_column]}|"
+            self.grid[second_row][second_column] = '   '
+            a_faller.set_direction('vertical')
+            a_faller.set_faller_position(rotate_row, rotate_column, rotate_row-1, rotate_column)
+            #may need right capsule's row and column'''
+            #only RIGHT capsule rotates 
+            self.grid[rotate_row-1][rotate_column] = f"|{self.grid[rotate_row][rotate_column+1][2:]}"
+            self.grid[rotate_row][rotate_column] = f"{self.grid[rotate_row][rotate_column]}|"
+            self.grid[rotate_row][rotate_column+1] = '   '
+            a_faller.set_direction('vertical')
+            a_faller.set_faller_position(rotate_row, rotate_column, rotate_row-1, rotate_column)
+            #may need right capsule's row and column
+
+        elif rotate_faller.get_direction() == 'vertical': #TBD
+            self.grid[rotate_row-1][rotate_column] = '   '
+            self.grid[rotate_row][rotate_column] = '   '
+
         self.print_grid()
-        #if 2 columns are equivalent then they are vertical --> change to horizontal
-        #else: they are horizontal --> change to vertical '''
-        '''for row in range(self.rows):
-            for column in range(self.columns):
-                cell = self.grid[row][column]'''
 
-        '''faller_cell = {}
-        for row in range(self.rows):
-            for column in range(self.columns):
-                cell = self.grid[row][column]
-                if "|" in cell:
-                    faller_cell[cell] = [row, column]
-        #if 2 columns are equivalent then they are vertical --> change to horizontal
-        #else: they are horizontal --> change to vertical 
+    def create_virus(self, command_lst):
+        row = int(command_lst[1])
+        column = int(command_lst[2])
+        color = command_lst[3].lower()
+        a_virus = Virus(row, column, color)
+        self.virus_lst.append(a_virus)
+        if self.grid[row][column] == '   ':
+            self.grid[row][column] = f' {color} '
+        self.print_grid()
+
+        self.matches()
         
-        #rotate clockwise
-        self.grid[row_pos-1][middle] = self.grid[row_pos][middle+1]'''
-
     def contains_virus(self):
         pass
 
@@ -166,10 +242,12 @@ class Field:
             for column in range(columns):
                 print(f"{self.grid[row][column]}", end='')
             print('|')
-        print(' '+ '-' * (columns * 3))
+        print(' '+ '-' * (columns * 3)  + ' ')
+        if len(self.virus_lst) == 0:
+            print("LEVEL CLEARED")
 
 
-class Faller:
+class Vitamin:
     def __init__(self, rows, columns, second_row, second_column, first_color, second_color, faller_state):
         self.rows = rows
         self.columns = columns
@@ -207,7 +285,7 @@ class Faller:
         return self.second_color
     
     def get_faller_position(self):
-        return self.rows, self.columns
+        return self.rows, self.columns, self.second_row, self.second_column
     
     def set_faller_position(self, row, col, second_row, second_column):
         self.rows = row
@@ -229,6 +307,6 @@ class Virus:
         self.column = column
     
     def get_virus_color(self):
-        self.color = color 
+        return self.color 
 
     

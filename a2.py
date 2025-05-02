@@ -15,10 +15,12 @@ def main():
             break
         elif command[0] == 'F':
             a_field.create_faller(command_lst)
-        elif command[0] == 'A':
-            a_field.rotate_faller()
         elif command[0] == 'B':
-            pass
+            a_field.rotate_faller_counter_clockwise()
+        elif command[0] == 'A':
+             a_field.rotate_faller_clockwise()
+        elif command[0] == 'V':
+            a_field.create_virus(command_lst)
         elif command[0] == '>':
             a_field.move_right()
         elif command[0] == '<':
