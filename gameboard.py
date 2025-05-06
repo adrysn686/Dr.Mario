@@ -38,11 +38,11 @@ class GameBoard:
         self.print_grid()
         
     def time(self):
-        curr_row = self.faller.row
-        curr_col = self.faller.column
-        
         #if horizontal 
         if self.faller.direction == 'horizontal':
+            curr_row = self.faller.row
+            curr_col = self.faller.column
+
             left_capsule = self.grid[curr_row][curr_col]
             right_capsule = self.grid[curr_row][curr_col+1]
 
@@ -89,15 +89,15 @@ class GameBoard:
         #curr_row = self.faller.row
         #curr_col = self.faller.column
         elif self.faller.direction == 'vertical':
+            curr_row = self.faller.top_row
+            curr_col = self.faller.column
+
             top_capsule = self.grid[curr_row][curr_col]
             bottom_capsule = self.grid[curr_row+1][curr_col]
-            print(top_capsule)
-            print(bottom_capsule)
 
             if curr_row < self.rows-2:
                 #check if next capsule after bottom is empty 
                 if self.grid[curr_row+2][curr_col] == '   ' and self.faller.faller_state == self.FALLING:
-                    print('here')
                     #clear old position
                     self.grid[curr_row][curr_col] = '   '
                     self.grid[curr_row+1][curr_col] = '   '
@@ -194,8 +194,7 @@ class GameBoard:
             else:
                 i += 1
         
-        self.print_grid()
-        self.gravity()
+        #self.gravity()
 
     def create_contents_board(self, input1, input2):
         pass
@@ -239,10 +238,10 @@ class Vitamin:
             new_column = self.column + 1
             
             #move right 
-            grid[self.row][new_column] = grid[self.row][self.column]
-            grid[self.row + 1][new_column] = grid[self.row + 1][self.column]
-            grid[self.row][self.column] = '   '
-            grid[self.row + 1][self.column] = '   '
+            grid[self.top_row][new_column] = grid[self.top_row][self.column]
+            grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
+            grid[self.top_row][self.column] = '   '
+            grid[self.top_row + 1][self.column] = '   '
             
             self.column = new_column
         
@@ -265,10 +264,10 @@ class Vitamin:
             new_column = self.column - 1
             
             #move right 
-            grid[self.row][new_column] = grid[self.row][self.column]
-            grid[self.row + 1][new_column] = grid[self.row + 1][self.column]
-            grid[self.row][self.column] = '   '
-            grid[self.row + 1][self.column] = '   '
+            grid[self.top_row][new_column] = grid[self.top_row][self.column]
+            grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
+            grid[self.top_row][self.column] = '   '
+            grid[self.top_row + 1][self.column] = '   '
             
             self.column = new_column
         
