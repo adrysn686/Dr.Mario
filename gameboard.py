@@ -10,6 +10,7 @@ class GameBoard:
         self.virus_lst = []
         self.faller = None
         self.empty =  '   '
+        self.gameover = False
     
         for row in range(rows):
             row = []
@@ -29,6 +30,10 @@ class GameBoard:
         self.faller = Vitamin(row_pos, middle_col, command_lst[1], command_lst[2], faller_state = self.FALLING)
 
         if self.grid[row_pos][middle_col] != '   ' or self.grid[row_pos][middle_col+1] != '   ':
+            self.grid[row_pos][middle_col] = f"[{command_lst[1]}"
+            self.grid[row_pos][middle_col+1] = f"--{command_lst[2]}]"
+            self.gameover = True
+            self.print_grid()
             print("GAME OVER")
             return
         
@@ -84,6 +89,7 @@ class GameBoard:
                     self.faller.faller_state = self.FREEZING
             else:
                 return
+            self.matches()
             self.print_grid()
         
         #curr_row = self.faller.row
@@ -134,7 +140,8 @@ class GameBoard:
                     self.faller.faller_state = self.FREEZING
             else:
                 return
-            self.print_grid()
+            if not self.matches():
+                self.print_grid()
 
     def gravity(self):
         #check for vitamin
@@ -163,29 +170,51 @@ class GameBoard:
         self.print_grid()
 
     def matches(self):
+        isMatch = False
         matches = set()
-
         #horizontal match
         for row in range(self.rows):
             for column in range (self.columns-3):
-                if (self.grid[row][column] != '   ' and
-                    self.grid[row][column] == self.grid[row][column+1]
-                    == self.grid[row][column+2] == self.grid[row][column+3]): 
-                    matches.update([(row, column), (row, column+1), (row, column+2), (row, column+3)])
+                if (self.grid[row][column] != '   ' and "[" not in self.grid[row][column]):
+                    first = self.grid[row][column].upper().replace('-', '').strip()
+                    second = self.grid[row][column+1].upper().replace('-', '').strip()
+                    third = self.grid[row][column+2].upper().replace('-', '').strip()
+                    fourth = self.grid[row][column+3].upper().replace('-', '').strip()
+                    if (first == second == third == fourth):
+                        matches.update([(row, column), (row, column+1), (row, column+2), (row, column+3)])
+                        isMatch = True
        
         #vertical match
         for column in range(self.columns):
             for row in range (self.rows-3):
-                if (self.grid[row][column] != '   ' and
-                    self.grid[row][column] == self.grid[row+1][column] ==
-                    self.grid[row+2][column] == self.grid[row+3][column]): 
-                    matches.update([(row, column), (row+1, column), (row+2, column), (row+3, column)])
+                if (self.grid[row][column] != '   ' and "[" not in self.grid[row][column]):
+                    first = self.grid[row][column].upper().replace('-', '').strip()
+                    second = self.grid[row+1][column].upper().replace('-', '').strip()
+                    third = self.grid[row+2][column].upper().replace('-', '').strip()
+                    fourth = self.grid[row+3][column].upper().replace('-', '').strip()
+                    if (first == second == third == fourth):
+                        matches.update([(row, column), (row+1, column), (row+2, column), (row+3, column)])
+                        isMatch = True
         #clear matches 
         for row, column in matches:
+            self.grid[row][column] = f"*{self.grid[row][column]}*"
+        if isMatch is True:
+            self.print_grid()
+            
+        for row, column in matches:
+            if column+1 < self.columns:
+                #if the cell next to the ones after matching have '-' in it, 
+                #we know it's a double capsule that changes to a single capsule
+                if '-' in self.grid[row][column+1]:
+                    self.grid[row][column+1] = self.grid[row][column+1].upper().replace('-', '')
+            
             self.grid[row][column] = '   '
             for virus in self.virus_lst:
                 if virus.row == row and virus.column == column:
                     virus.is_remove = True
+        if isMatch is True:
+            self.print_grid()
+        
         #remove viruses from virus list 
         i = 0
         while i < len(self.virus_lst):
@@ -193,7 +222,7 @@ class GameBoard:
                 del self.virus_lst[i]
             else:
                 i += 1
-        
+        return isMatch
         #self.gravity()
 
     def create_contents_board(self, input1, input2):
@@ -207,8 +236,9 @@ class GameBoard:
         self.virus_lst.append(a_virus)
         if self.grid[row][column] == '   ':
             self.grid[row][column] = f' {color} '
-        self.print_grid()
-        self.matches()
+        if not self.matches():
+            self.print_grid()
+
 
     def print_grid(self):  
         for row in range(len(self.grid)):
@@ -218,7 +248,7 @@ class GameBoard:
                 print(f"{self.grid[row][column]}", end='')
             print('|')
         print(' '+ '-' * (columns * 3)  + ' ')
-        if len(self.virus_lst) == 0:
+        if len(self.virus_lst) == 0 and self.gameover is False:
             print("LEVEL CLEARED")
 
 
