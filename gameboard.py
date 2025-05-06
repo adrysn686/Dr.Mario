@@ -227,6 +227,7 @@ class Vitamin:
     def __init__(self, row, column, left_color, right_color, faller_state):
         self.row = row
         self.column = column
+        self.top_row = row
         self.left_color =  left_color
         self.right_color =  right_color
         self.faller_state = faller_state
@@ -317,9 +318,6 @@ class Vitamin:
                 grid[new_top_row][self.column] = f"[{left_content[1]}]"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"[{right_content[2]}]"
-
-                self.direction = 'vertical'
-                self.row = new_top_row
             
             elif self.faller_state == 2:
                 new_top_row = self.row -1
@@ -328,89 +326,87 @@ class Vitamin:
                 #left changes to bottom 
                 grid[self.row][self.column] = f"|{right_content[2]}|"
 
-                self.direction = 'vertical'
-                self.row = new_top_row
+            self.direction = 'vertical'
+            #self.row = new_top_row
+            self.top_row = new_top_row
             
         elif self.direction == 'vertical':
-            if grid[self.row + 1][self.column+1] != '   ':
-                if grid[self.row + 1][self.column-1] == '   ':
+            if grid[self.top_row + 1][self.column+1] != '   ':
+                if grid[self.top_row + 1][self.column-1] == '   ':
                     self.move_left(grid)
-                    top_content = grid[self.row][self.column]
-                    bottom_content = grid[self.row + 1][self.column]
+                    top_content = grid[self.top_row][self.column]
+                    bottom_content = grid[self.top_row + 1][self.column]
                     #clear position
-                    grid[self.row][self.column] = '   '
+                    grid[self.top_row][self.column] = '   '
                 
                     new_right_column = self.column +1
                     if self.faller_state == 1:
-                        grid[self.row+1][self.column] = f"[{bottom_content[1]}"
-                        grid[self.row+1][new_right_column] = f"--{top_content[1]}]"
+                        grid[self.top_row+1][self.column] = f"[{bottom_content[1]}"
+                        grid[self.top_row+1][new_right_column] = f"--{top_content[1]}]"
                     else: #it's landing
-                        grid[self.row][self.column] = f"|{bottom_content[1]}"
-                        grid[self.row][new_right_column] = f"--{top_content[1]}|"
+                        grid[self.top_row][self.column] = f"|{bottom_content[1]}"
+                        grid[self.top_row][new_right_column] = f"--{top_content[1]}|"
 
                     self.direction = 'horizontal'
-                    self.row = self.row + 1
+
+                    #self.row = self.row + 1
             else:
-                top_content = grid[self.row][self.column]
-                bottom_content = grid[self.row + 1][self.column]
+                top_content = grid[self.top_row][self.column]
+                bottom_content = grid[self.top_row + 1][self.column]
                 #clear position
-                grid[self.row][self.column] = '   '
+                grid[self.top_row][self.column] = '   '
             
                 new_right_column = self.column +1
                 if self.faller_state == 1:
-                    grid[self.row+1][self.column] = f"[{bottom_content[1]}"
-                    grid[self.row+1][new_right_column] = f"--{top_content[1]}]"
+                    grid[self.top_row+1][self.column] = f"[{bottom_content[1]}"
+                    grid[self.top_row+1][new_right_column] = f"--{top_content[1]}]"
                 else: #it's landing
-                    grid[self.row][self.column] = f"|{bottom_content[1]}"
-                    grid[self.row][new_right_column] = f"--{top_content[1]}|"
+                    grid[self.top_row][self.column] = f"|{bottom_content[1]}"
+                    grid[self.top_row][new_right_column] = f"--{top_content[1]}|"
 
                 self.direction = 'horizontal'
-                self.row = self.row + 1
+                #self.row = self.row + 1
 
 
     def rotate_faller_counter_clockwise(self, grid):
         if self.direction == 'horizontal':
             left_content = grid[self.row][self.column]
             right_content = grid[self.row][self.column + 1]
-            print(f"RIGHT CONTENT: {right_content}")
-            print(f"LEFT CONTENT: {left_content}")
-
             
             #clear current position
             grid[self.row][self.column+1] = '   '
 
+            new_top_row = self.row -1
+            self.top_row = new_top_row
+
             if self.faller_state == 1:
-                new_top_row = self.row -1
                 #right changes to top 
                 grid[new_top_row][self.column] = f"[{right_content[2]}]"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"[{left_content[1]}]"
-
-                self.direction = 'vertical'
             
             elif self.faller_state == 2:
-                new_top_row = self.row -1
                 #right changes to top 
                 grid[new_top_row][self.column] = f"|{right_content[2]}|"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"|{left_content[1]}|"
 
-                self.direction = 'vertical'
+            self.direction = 'vertical'
 
         elif self.direction == 'vertical':
-            top_content = grid[self.row-1][self.column]
-            bottom_content = grid[self.row][self.column]
+            top_content = grid[self.top_row][self.column]
+            bottom_content = grid[self.top_row + 1][self.column]
 
             #clear position
-            grid[self.row-1][self.column] = '   '
+            grid[self.top_row][self.column] = '   '
         
             new_right_column = self.column +1
             if self.faller_state == 1:
-                grid[self.row][new_right_column] = f"--{bottom_content[1]}]"
-                grid[self.row][self.column] = f"[{top_content[1]}"
+                grid[self.top_row + 1][new_right_column] = f"--{bottom_content[1]}]"
+                grid[self.top_row + 1][self.column] = f"[{top_content[1]}"
             else: #it's landing
-                grid[self.row][new_right_column] = f"--{bottom_content[1]}|"
-                grid[self.row][self.column] = f"|{top_content[1]}"
+                grid[self.top_row + 1][new_right_column] = f"--{bottom_content[1]}|"
+                grid[self.top_row + 1][self.column] = f"|{top_content[1]}"
 
             self.direction = 'horizontal'
 
