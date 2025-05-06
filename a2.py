@@ -1,34 +1,40 @@
 import shlex
-import field
+from gameboard import GameBoard
 
 def main():
     rows = int(input())
     columns = int(input())
-    command = input()
-    a_field = field.Field(rows, columns)
-    a_field.print_grid()
+    create_board_command = input()
+    if create_board_command == 'EMPTY':
+        gameboard = GameBoard(rows, columns)
+        gameboard.print_grid()
+    elif create_board_command == "CONTENTS":
+        #input
+        #input
+        gameboard = GameBoard(rows, columns)
+        gameboard.print_grid()
 
     while True:
         command = input()
         command_lst = shlex.split(command)
         if command == 'Q':
             break
+        elif command == '':
+            gameboard.time()
         elif command[0] == 'F':
-            a_field.create_faller(command_lst)
+            gameboard.create_faller(command_lst)
         elif command[0] == 'B':
-            a_field.rotate_faller_counter_clockwise()
+            gameboard.rotate_gameboard_counter_clockwise()
         elif command[0] == 'A':
-             a_field.rotate_faller_clockwise()
+            gameboard.rotate_gameboard_clockwise()
         elif command[0] == 'V':
-            a_field.create_virus(command_lst)
+            gameboard.create_virus(command_lst)
         elif command[0] == '>':
-            a_field.move_right()
+            gameboard.move_right()
         elif command[0] == '<':
-            pass
+            gameboard.move_left()
         elif command[0] == 'V':
-            pass
-        elif command[0] == '':
-            pass
+            gameboard.create_virus()
         
 
 
