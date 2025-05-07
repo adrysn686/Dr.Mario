@@ -76,7 +76,8 @@ class GameBoard:
             self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
             self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
             self.print_grid()
-        
+
+
     def time(self):
         #if horizontal 
         if self.faller.direction == 'horizontal':
@@ -136,7 +137,8 @@ class GameBoard:
                     self.faller.faller_state = self.FREEZING
             else:
                 return
-            self.matches()
+            if self.matches():
+                self.gravity()
             self.print_grid()
         
         #curr_row = self.faller.row
@@ -187,10 +189,20 @@ class GameBoard:
                     self.faller.faller_state = self.FREEZING
             else:
                 return
-            if not self.matches():
+            no_matches = True
+            while self.matches():
+                no_matches = False
+                self.gravity()
+            if no_matches is True:
                 self.print_grid()
 
+            '''if not self.matches():
+                self.print_grid()
+            else:
+                self.gravity()'''
+
     def gravity(self):
+        isGravity = False
         #iterates through the rows starting from the last row
         #gravity can only happen when capsule is NOT in the last row, thus self.rows-2
         for row in range(self.rows-2, -1, -1):
@@ -199,7 +211,7 @@ class GameBoard:
                 if current_cell == '   ':
                     continue
                 #this is a double capsule 
-                if '-' in current_cell:
+                elif '-' in current_cell:
                     #checking left capsule
                     current_row = row
                     while current_row < self.rows-1 and self.grid[current_row+1][column] == '   ' and self.grid[current_row+1][column+1] == '   ':
@@ -211,6 +223,7 @@ class GameBoard:
                         self.grid[current_row][column] = '   '
                         self.grid[current_row][column+1] = '   '
                         current_row += 1
+                        isGravity = True
                         self.print_grid()
 
                 #this is a single capsule 
@@ -223,6 +236,9 @@ class GameBoard:
                         self.grid[current_row][column] = '   '
                         current_row += 1
                         self.print_grid()
+                        isGravity = True
+        #if isGravity is True:
+            #self.matches()
 
 
     def rotate_gameboard_counter_clockwise(self):
@@ -291,7 +307,7 @@ class GameBoard:
             for virus in self.virus_lst:
                 if virus.row == row and virus.column == column:
                     virus.is_remove = True
-        #if not self.gravity:
+        
         if isMatch is True:
             self.print_grid()
         
