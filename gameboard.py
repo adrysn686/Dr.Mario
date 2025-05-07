@@ -11,7 +11,6 @@ class GameBoard:
         self.faller = None
         self.empty =  '   '
         self.gameover = False
-        self.isMatch = False
         self.row_list = row_list
 
         if row_list is None:
@@ -20,6 +19,7 @@ class GameBoard:
                 for column in range(columns):
                     row.append('   ')
                 self.grid.append(row)
+            self.print_grid()
         #work on this for CONTENTS 
         else:
             for i in range(rows):
@@ -28,9 +28,10 @@ class GameBoard:
                     formatted = f" {char} "
                     row.append(formatted)
                 self.grid.append(row)
-            if self.matches():
-                self.isMatch = True
-
+            
+            if not self.matches():
+                self.print_grid()
+    
     def create_faller(self, command_lst):
          #if number of columns is odd
         if self.columns % 2 == 1:
@@ -193,6 +194,7 @@ class GameBoard:
         self.print_grid()
 
     def matches(self):
+        isMatch = False
         matches = set()
         #horizontal match
         for row in range(self.rows):
@@ -204,7 +206,7 @@ class GameBoard:
                     fourth = self.grid[row][column+3].upper().replace('-', '').strip()
                     if (first == second == third == fourth):
                         matches.update([(row, column), (row, column+1), (row, column+2), (row, column+3)])
-                        self.isMatch = True
+                        isMatch = True
        
         #vertical match
         for column in range(self.columns):
@@ -216,13 +218,13 @@ class GameBoard:
                     fourth = self.grid[row+3][column].upper().replace('-', '').strip()
                     if (first == second == third == fourth):
                         matches.update([(row, column), (row+1, column), (row+2, column), (row+3, column)])
-                        self.isMatch = True
+                        isMatch = True
         #clear matches 
         for row, column in matches:
             if '-' in self.grid[row][column]:
                     self.grid[row][column] = self.grid[row][column].replace('-', '').strip()
             self.grid[row][column] = f"*{self.grid[row][column].strip()}*"
-        if self.isMatch is True:
+        if isMatch is True:
             self.print_grid()
             
         for row, column in matches:
@@ -236,7 +238,7 @@ class GameBoard:
             for virus in self.virus_lst:
                 if virus.row == row and virus.column == column:
                     virus.is_remove = True
-        if self.isMatch is True:
+        if isMatch is True:
             self.print_grid()
         
         #remove viruses from virus list 
@@ -246,7 +248,7 @@ class GameBoard:
                 del self.virus_lst[i]
             else:
                 i += 1
-        return self.isMatch
+        return isMatch
         #self.gravity()
 
     def create_contents_board(self, input1, input2):
