@@ -9,10 +9,13 @@ def main():
         gameboard = GameBoard(rows, columns)
         gameboard.print_grid()
     elif create_board_command == "CONTENTS":
-        #input
-        #input
-        gameboard = GameBoard(rows, columns)
-        gameboard.print_grid()
+        row_list = []
+        for _ in range(rows):
+            row = input()
+            row_list.append(row)
+        gameboard = GameBoard(rows, columns, row_list)
+        if not gameboard.isMatch:
+            gameboard.print_grid()
 
     while True:
         command = input()

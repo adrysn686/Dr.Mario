@@ -3,7 +3,7 @@ class GameBoard:
     LANDING = 2
     FREEZING = 3
 
-    def __init__(self, rows, columns):
+    def __init__(self, rows, columns, row_list=None):
         self.rows = rows
         self.columns = columns
         self.grid = []
@@ -11,12 +11,25 @@ class GameBoard:
         self.faller = None
         self.empty =  '   '
         self.gameover = False
-    
-        for row in range(rows):
-            row = []
-            for column in range(columns):
-                row.append('   ')
-            self.grid.append(row)
+        self.isMatch = False
+        self.row_list = row_list
+
+        if row_list is None:
+            for _ in range(rows):
+                row = []
+                for column in range(columns):
+                    row.append('   ')
+                self.grid.append(row)
+        #work on this for CONTENTS 
+        else:
+            for i in range(rows):
+                row = []
+                for char in row_list[i]:
+                    formatted = f" {char} "
+                    row.append(formatted)
+                self.grid.append(row)
+            if self.matches():
+                self.isMatch = True
 
     def create_faller(self, command_lst):
          #if number of columns is odd
@@ -30,16 +43,16 @@ class GameBoard:
         self.faller = Vitamin(row_pos, middle_col, command_lst[1], command_lst[2], faller_state = self.FALLING)
 
         if self.grid[row_pos][middle_col] != '   ' or self.grid[row_pos][middle_col+1] != '   ':
-            self.grid[row_pos][middle_col] = f"[{command_lst[1]}"
-            self.grid[row_pos][middle_col+1] = f"--{command_lst[2]}]"
+            self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
+            self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
             self.gameover = True
             self.print_grid()
             print("GAME OVER")
             return
         
         #put faller in current position
-        self.grid[row_pos][middle_col] = f"[{command_lst[1]}"
-        self.grid[row_pos][middle_col+1] = f"--{command_lst[2]}]"
+        self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
+        self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
         self.print_grid()
         
     def time(self):
@@ -52,8 +65,17 @@ class GameBoard:
             right_capsule = self.grid[curr_row][curr_col+1]
 
             if curr_row < self.rows-1:
+                if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and curr_row+1 == self.rows-1:
+                    self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
+                    self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
+                    self.faller.set_faller_position(curr_row+1, curr_col)
+                    self.faller.faller_state = self.LANDING
+
+                    #clear old position
+                    self.grid[curr_row][curr_col] = '   '
+                    self.grid[curr_row][curr_col+1] = '   '
                 #place capsules in new positions 
-                if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING:
+                elif self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING:
                     self.grid[curr_row+1][curr_col] = left_capsule
                     self.grid[curr_row+1][curr_col+1] = right_capsule
                     self.faller.set_faller_position(curr_row+1, curr_col)
@@ -61,6 +83,7 @@ class GameBoard:
                     #clear old position
                     self.grid[curr_row][curr_col] = '   '
                     self.grid[curr_row][curr_col+1] = '   '
+                
                 
                 #change faller state to landing if something is under 
                 elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.FALLING:
@@ -170,7 +193,6 @@ class GameBoard:
         self.print_grid()
 
     def matches(self):
-        isMatch = False
         matches = set()
         #horizontal match
         for row in range(self.rows):
@@ -182,7 +204,7 @@ class GameBoard:
                     fourth = self.grid[row][column+3].upper().replace('-', '').strip()
                     if (first == second == third == fourth):
                         matches.update([(row, column), (row, column+1), (row, column+2), (row, column+3)])
-                        isMatch = True
+                        self.isMatch = True
        
         #vertical match
         for column in range(self.columns):
@@ -194,11 +216,13 @@ class GameBoard:
                     fourth = self.grid[row+3][column].upper().replace('-', '').strip()
                     if (first == second == third == fourth):
                         matches.update([(row, column), (row+1, column), (row+2, column), (row+3, column)])
-                        isMatch = True
+                        self.isMatch = True
         #clear matches 
         for row, column in matches:
-            self.grid[row][column] = f"*{self.grid[row][column]}*"
-        if isMatch is True:
+            if '-' in self.grid[row][column]:
+                    self.grid[row][column] = self.grid[row][column].replace('-', '').strip()
+            self.grid[row][column] = f"*{self.grid[row][column].strip()}*"
+        if self.isMatch is True:
             self.print_grid()
             
         for row, column in matches:
@@ -206,13 +230,13 @@ class GameBoard:
                 #if the cell next to the ones after matching have '-' in it, 
                 #we know it's a double capsule that changes to a single capsule
                 if '-' in self.grid[row][column+1]:
-                    self.grid[row][column+1] = self.grid[row][column+1].upper().replace('-', '')
+                    self.grid[row][column+1] = self.grid[row][column+1].upper().replace('-', ' ')
             
             self.grid[row][column] = '   '
             for virus in self.virus_lst:
                 if virus.row == row and virus.column == column:
                     virus.is_remove = True
-        if isMatch is True:
+        if self.isMatch is True:
             self.print_grid()
         
         #remove viruses from virus list 
@@ -222,7 +246,7 @@ class GameBoard:
                 del self.virus_lst[i]
             else:
                 i += 1
-        return isMatch
+        return self.isMatch
         #self.gravity()
 
     def create_contents_board(self, input1, input2):
@@ -263,58 +287,69 @@ class Vitamin:
         self.direction = 'horizontal'
 
     def move_right(self, grid):
-       
+        grid_column = len(grid[0])
         if self.direction == 'vertical':
             new_column = self.column + 1
-            
-            #move right 
-            grid[self.top_row][new_column] = grid[self.top_row][self.column]
-            grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
-            grid[self.top_row][self.column] = '   '
-            grid[self.top_row + 1][self.column] = '   '
-            
-            self.column = new_column
-        
+            if new_column < grid_column:
+                #move right 
+                grid[self.top_row][new_column] = grid[self.top_row][self.column]
+                grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
+                grid[self.top_row][self.column] = '   '
+                grid[self.top_row + 1][self.column] = '   '
+                
+                self.column = new_column
+            else:
+                return
         elif self.direction == 'horizontal':
             new_left_column = self.column + 1
             new_right_column = self.column + 2
+            
+            if new_right_column < grid_column:
+                left_capsule = grid[self.row][self.column]
+                right_capsule = grid[self.row][self.column+1]
 
-            left_capsule = grid[self.row][self.column]
-            right_capsule = grid[self.row][self.column+1]
+                grid[self.row][new_left_column] = left_capsule
+                grid[self.row][new_right_column] = right_capsule
+                grid[self.row][self.column] = '   '
 
-            grid[self.row][new_left_column] = left_capsule
-            grid[self.row][new_right_column] = right_capsule
-            grid[self.row][self.column] = '   '
-
-            self.column = new_left_column
+                self.column = new_left_column
+            else:
+                return
     
     def move_left(self, grid):
 
+        grid_column = len(grid[0])
+
         if self.direction == 'vertical':
             new_column = self.column - 1
-            
-            #move right 
-            grid[self.top_row][new_column] = grid[self.top_row][self.column]
-            grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
-            grid[self.top_row][self.column] = '   '
-            grid[self.top_row + 1][self.column] = '   '
-            
-            self.column = new_column
+            if new_column >= 0:
+                #move left 
+                grid[self.top_row][new_column] = grid[self.top_row][self.column]
+                grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
+                grid[self.top_row][self.column] = '   '
+                grid[self.top_row + 1][self.column] = '   '
+                
+                self.column = new_column
+            else:
+                return
         
         elif self.direction == 'horizontal':
             new_left_column = self.column - 1
             new_right_column = self.column
 
-            left_capsule = grid[self.row][self.column]
-            right_capsule = grid[self.row][self.column+1]
+            if new_left_column >= 0:
+                left_capsule = grid[self.row][self.column]
+                right_capsule = grid[self.row][self.column+1]
 
-            grid[self.row][new_left_column] = left_capsule
-            grid[self.row][new_right_column] = right_capsule
-    
-            grid[self.row][self.column+1] = '   '
+                grid[self.row][new_left_column] = left_capsule
+                grid[self.row][new_right_column] = right_capsule
+        
+                grid[self.row][self.column+1] = '   '
 
-            self.column = new_left_column
-    
+                self.column = new_left_column
+            else:
+                return
+
 
     def get_direction(self):
         return self.direction
@@ -346,14 +381,14 @@ class Vitamin:
                 #left changes to top 
                 grid[new_top_row][self.column] = f"[{left_content[1]}]"
                 #left changes to bottom 
-                grid[self.row][self.column] = f"[{right_content[2]}]"
+                grid[self.row][self.column] = f"[{right_content[1]}]"
             
             elif self.faller_state == 2:
                 new_top_row = self.row -1
                 #left changes to top 
                 grid[new_top_row][self.column] = f"|{left_content[1]}|"
                 #left changes to bottom 
-                grid[self.row][self.column] = f"|{right_content[2]}|"
+                grid[self.row][self.column] = f"|{right_content[1]}|"
 
             self.direction = 'vertical'
             #self.row = new_top_row
@@ -370,11 +405,15 @@ class Vitamin:
                 
                     new_right_column = self.column +1
                     if self.faller_state == 1:
-                        grid[self.top_row+1][self.column] = f"[{bottom_content[1]}"
-                        grid[self.top_row+1][new_right_column] = f"--{top_content[1]}]"
+                        print(bottom_content)
+                        print(top_content)
+                        grid[self.top_row+1][self.column] = f"[{bottom_content[1]}-"
+                        grid[self.top_row+1][new_right_column] = f"-{top_content[1]}]"
                     else: #it's landing
-                        grid[self.top_row][self.column] = f"|{bottom_content[1]}"
-                        grid[self.top_row][new_right_column] = f"--{top_content[1]}|"
+                        print(bottom_content)
+                        print(top_content)
+                        grid[self.top_row+1][self.column] = f"|{bottom_content[1]}-"
+                        grid[self.top_row+1][new_right_column] = f"-{top_content[1]}|"
 
                     self.direction = 'horizontal'
 
@@ -387,11 +426,11 @@ class Vitamin:
             
                 new_right_column = self.column +1
                 if self.faller_state == 1:
-                    grid[self.top_row+1][self.column] = f"[{bottom_content[1]}"
-                    grid[self.top_row+1][new_right_column] = f"--{top_content[1]}]"
+                    grid[self.top_row+1][self.column] = f"[{bottom_content[1]}-"
+                    grid[self.top_row+1][new_right_column] = f"-{top_content[1]}]"
                 else: #it's landing
-                    grid[self.top_row][self.column] = f"|{bottom_content[1]}"
-                    grid[self.top_row][new_right_column] = f"--{top_content[1]}|"
+                    grid[self.top_row+1][self.column] = f"|{bottom_content[1]}-"
+                    grid[self.top_row+1][new_right_column] = f"-{top_content[1]}|"
 
                 self.direction = 'horizontal'
                 #self.row = self.row + 1
@@ -410,13 +449,13 @@ class Vitamin:
 
             if self.faller_state == 1:
                 #right changes to top 
-                grid[new_top_row][self.column] = f"[{right_content[2]}]"
+                grid[new_top_row][self.column] = f"[{right_content[1]}]"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"[{left_content[1]}]"
             
             elif self.faller_state == 2:
                 #right changes to top 
-                grid[new_top_row][self.column] = f"|{right_content[2]}|"
+                grid[new_top_row][self.column] = f"|{right_content[1]}|"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"|{left_content[1]}|"
 
@@ -431,11 +470,11 @@ class Vitamin:
         
             new_right_column = self.column +1
             if self.faller_state == 1:
-                grid[self.top_row + 1][new_right_column] = f"--{bottom_content[1]}]"
-                grid[self.top_row + 1][self.column] = f"[{top_content[1]}"
+                grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}]"
+                grid[self.top_row + 1][self.column] = f"[{top_content[1]}-"
             else: #it's landing
-                grid[self.top_row + 1][new_right_column] = f"--{bottom_content[1]}|"
-                grid[self.top_row + 1][self.column] = f"|{top_content[1]}"
+                grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}|"
+                grid[self.top_row + 1][self.column] = f"|{top_content[1]}-"
 
             self.direction = 'horizontal'
 
