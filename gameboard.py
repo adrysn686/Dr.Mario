@@ -28,9 +28,13 @@ class GameBoard:
                     formatted = f" {char} "
                     row.append(formatted)
                 self.grid.append(row)
-            
-            if not self.matches():
+            no_matches = True
+            while self.matches():
+                no_matches = False
+                self.gravity()
+            if no_matches is True:
                 self.print_grid()
+                     
     
     def create_faller(self, command_lst):
          #if number of columns is odd
@@ -43,18 +47,35 @@ class GameBoard:
         row_pos = 1
         self.faller = Vitamin(row_pos, middle_col, command_lst[1], command_lst[2], faller_state = self.FALLING)
 
+        #game over scenario 
         if self.grid[row_pos][middle_col] != '   ' or self.grid[row_pos][middle_col+1] != '   ':
-            self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
-            self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
+            #check if there is something under, if so, set it to landing 
+            if self.grid[row_pos+1][middle_col] != '   ' or self.grid[row_pos+1][middle_col+1] != '   ':
+                self.grid[row_pos][middle_col] = f"|{command_lst[1]}-"
+                self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}|"
+                self.faller.faller_state = self.LANDING
+            #there isn't something under, so falling state
+            else:
+                self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
+                self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
             self.gameover = True
             self.print_grid()
             print("GAME OVER")
             return
         
-        #put faller in current position
-        self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
-        self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
-        self.print_grid()
+        #landing since there's something under 
+        elif self.grid[row_pos+1][middle_col] != '   ' or self.grid[row_pos+1][middle_col+1] != '   ':
+            self.grid[row_pos][middle_col] = f"|{command_lst[1]}-"
+            self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}|"
+            self.faller.faller_state = self.LANDING
+            self.print_grid()
+
+        #create regular faller that is falling 
+        else:
+            #put faller in current position
+            self.grid[row_pos][middle_col] = f"[{command_lst[1]}-"
+            self.grid[row_pos][middle_col+1] = f"-{command_lst[2]}]"
+            self.print_grid()
         
     def time(self):
         #if horizontal 
@@ -66,7 +87,8 @@ class GameBoard:
             right_capsule = self.grid[curr_row][curr_col+1]
 
             if curr_row < self.rows-1:
-                if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and curr_row+1 == self.rows-1:
+                #checking if during falling it's going to land on the last row, if so, change state to landing 
+                if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and (curr_row+1 == self.rows-1 or (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ')):
                     self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
                     self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
                     self.faller.set_faller_position(curr_row+1, curr_col)
@@ -75,6 +97,7 @@ class GameBoard:
                     #clear old position
                     self.grid[curr_row][curr_col] = '   '
                     self.grid[curr_row][curr_col+1] = '   '
+
                 #place capsules in new positions 
                 elif self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING:
                     self.grid[curr_row+1][curr_col] = left_capsule
@@ -168,9 +191,39 @@ class GameBoard:
                 self.print_grid()
 
     def gravity(self):
-        #check for vitamin
-        # if its empty, call time
-        pass
+        #iterates through the rows starting from the last row
+        #gravity can only happen when capsule is NOT in the last row, thus self.rows-2
+        for row in range(self.rows-2, -1, -1):
+            for column in range (self.columns):
+                current_cell = self.grid[row][column].strip()
+                if current_cell == '   ':
+                    continue
+                #this is a double capsule 
+                if '-' in current_cell:
+                    #checking left capsule
+                    current_row = row
+                    while current_row < self.rows-1 and self.grid[current_row+1][column] == '   ' and self.grid[current_row+1][column+1] == '   ':
+                        #left capsule falls one position
+                        self.grid[current_row+1][column] = f" {current_cell} "
+                        #right capsule falls one position
+                        self.grid[current_row+1][column+1] = f" {self.grid[row][column+1]} "
+                        #clear old position
+                        self.grid[current_row][column] = '   '
+                        self.grid[current_row][column+1] = '   '
+                        current_row += 1
+                        self.print_grid()
+
+                #this is a single capsule 
+                elif current_cell in ['R', 'B', 'Y']:
+                    current_row = row
+                    while current_row < self.rows-1 and self.grid[current_row+1][column] == '   ':
+                        #capsule falls one position
+                        self.grid[current_row+1][column] = f" {current_cell} "
+                        #clear old position
+                        self.grid[current_row][column] = '   '
+                        current_row += 1
+                        self.print_grid()
+
 
     def rotate_gameboard_counter_clockwise(self):
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
@@ -238,6 +291,7 @@ class GameBoard:
             for virus in self.virus_lst:
                 if virus.row == row and virus.column == column:
                     virus.is_remove = True
+        #if not self.gravity:
         if isMatch is True:
             self.print_grid()
         
@@ -251,8 +305,6 @@ class GameBoard:
         return isMatch
         #self.gravity()
 
-    def create_contents_board(self, input1, input2):
-        pass
 
     def create_virus(self, command_lst):
         row = int(command_lst[1])
@@ -503,3 +555,15 @@ class Virus:
     def get_virus_state(self):
         return self.is_remove'''
 
+
+
+'''#checking if it lands on top of another item, if so, change state from falling to landing 
+                elif (self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ') and (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ') and (self.faller.faller_state == self.FALLING):
+                    self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
+                    self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
+                    self.faller.set_faller_position(curr_row+1, curr_col)
+                    self.faller.faller_state = self.LANDING
+
+                    #clear old position
+                    self.grid[curr_row][curr_col] = '   '
+                    self.grid[curr_row][curr_col+1] = '   '''
