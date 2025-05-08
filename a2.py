@@ -2,9 +2,15 @@ import shlex
 from gameboard import GameBoard
 
 def main():
-    rows = int(input())
-    columns = int(input())
-    create_board_command = input()
+    while True:
+        rows = int(input())
+        columns = int(input())
+        if rows >= 4 and columns >= 3:
+            break
+    while True:
+        create_board_command = input()
+        if create_board_command in ['EMPTY', "CONTENTS"]:
+            break
     if create_board_command == 'EMPTY':
         gameboard = GameBoard(rows, columns)
     

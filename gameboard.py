@@ -13,6 +13,7 @@ class GameBoard:
         self.gameover = False
         self.row_list = row_list
 
+        #for empty
         if row_list is None:
             for _ in range(rows):
                 row = []
@@ -20,7 +21,7 @@ class GameBoard:
                     row.append('   ')
                 self.grid.append(row)
             self.print_grid()
-        #work on this for CONTENTS 
+        #for CONTENTS 
         else:
             for i in range(rows):
                 row = []
@@ -88,7 +89,7 @@ class GameBoard:
             right_capsule = self.grid[curr_row][curr_col+1]
 
             if curr_row < self.rows-1:
-                #checking if during falling it's going to land on the last row, if so, change state to landing 
+                #checking if during falling it's going to land on the last row OR if there's something under. If so, change state to landing 
                 if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and (curr_row+1 == self.rows-1 or (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ')):
                     self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
                     self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
@@ -137,9 +138,12 @@ class GameBoard:
                     self.faller.faller_state = self.FREEZING
             else:
                 return
-            if self.matches():
+            no_matches = True
+            while self.matches():
+                no_matches = False
                 self.gravity()
-            self.print_grid()
+            if no_matches is True:
+                self.print_grid()
         
         #curr_row = self.faller.row
         #curr_col = self.faller.column
@@ -239,7 +243,6 @@ class GameBoard:
                         isGravity = True
         #if isGravity is True:
             #self.matches()
-
 
     def rotate_gameboard_counter_clockwise(self):
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
@@ -465,30 +468,31 @@ class Vitamin:
             self.top_row = new_top_row
             
         elif self.direction == 'vertical':
+            #check if bottom right cell is empty. IF NOT, apply wall kick
             if grid[self.top_row + 1][self.column+1] != '   ':
+                #check if able to move left for wall kick
                 if grid[self.top_row + 1][self.column-1] == '   ':
-                    self.move_left(grid)
                     top_content = grid[self.top_row][self.column]
                     bottom_content = grid[self.top_row + 1][self.column]
                     #clear position
                     grid[self.top_row][self.column] = '   '
                 
-                    new_right_column = self.column +1
+                    new_right_column = self.column
+                    new_left_column = self.column - 1
                     if self.faller_state == 1:
-                        print(bottom_content)
-                        print(top_content)
-                        grid[self.top_row+1][self.column] = f"[{bottom_content[1]}-"
+                        grid[self.top_row+1][new_left_column] = f"[{bottom_content[1]}-"
                         grid[self.top_row+1][new_right_column] = f"-{top_content[1]}]"
                     else: #it's landing
-                        print(bottom_content)
-                        print(top_content)
-                        grid[self.top_row+1][self.column] = f"|{bottom_content[1]}-"
+                        grid[self.top_row+1][new_left_column] = f"|{bottom_content[1]}-"
                         grid[self.top_row+1][new_right_column] = f"-{top_content[1]}|"
 
                     self.direction = 'horizontal'
-
-                    #self.row = self.row + 1
-            else:
+                    self.column = new_left_column
+                    #self.row = self.top_row+ 1
+                else:
+                    #this is when wall kick should be applied but there's something on the left, so do nothing
+                    return 
+            else: #vertical and no wall kick 
                 top_content = grid[self.top_row][self.column]
                 bottom_content = grid[self.top_row + 1][self.column]
                 #clear position
@@ -503,7 +507,6 @@ class Vitamin:
                     grid[self.top_row+1][new_right_column] = f"-{top_content[1]}|"
 
                 self.direction = 'horizontal'
-                #self.row = self.row + 1
 
 
     def rotate_faller_counter_clockwise(self, grid):
@@ -532,21 +535,47 @@ class Vitamin:
             self.direction = 'vertical'
 
         elif self.direction == 'vertical':
-            top_content = grid[self.top_row][self.column]
-            bottom_content = grid[self.top_row + 1][self.column]
+            #check if bottom right cell is empty. IF NOT, apply wall kick
+            if grid[self.top_row + 1][self.column+1] != '   ':
+                #check if able to move left for wall kick
+                if grid[self.top_row + 1][self.column-1] == '   ':
+                    top_content = grid[self.top_row][self.column]
+                    bottom_content = grid[self.top_row + 1][self.column]
+                    #clear position
+                    grid[self.top_row][self.column] = '   '
+                
+                    new_right_column = self.column
+                    new_left_column = self.column - 1
+                    if self.faller_state == 1:
+                        grid[self.top_row+1][new_right_column] = f"-{bottom_content[1]}]"
+                        grid[self.top_row+1][new_left_column] = f"[{top_content[1]}-"
+                    else: #it's landing
+                        grid[self.top_row+1][new_right_column] = f"-{bottom_content[1]}|"
+                        grid[self.top_row+1][new_left_column] = f"|{top_content[1]}-"
+                    
+                    self.column = new_left_column
 
-            #clear position
-            grid[self.top_row][self.column] = '   '
-        
-            new_right_column = self.column +1
-            if self.faller_state == 1:
-                grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}]"
-                grid[self.top_row + 1][self.column] = f"[{top_content[1]}-"
-            else: #it's landing
-                grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}|"
-                grid[self.top_row + 1][self.column] = f"|{top_content[1]}-"
+                    self.direction = 'horizontal'
+                    #self.row = self.top_row+ 1
+                else:
+                    #this is when wall kick should be applied but there's something on the left, so do nothing
+                    return 
+            else: #vertical and no wall kick
+                top_content = grid[self.top_row][self.column]
+                bottom_content = grid[self.top_row + 1][self.column]
 
-            self.direction = 'horizontal'
+                #clear position
+                grid[self.top_row][self.column] = '   '
+            
+                new_right_column = self.column +1
+                if self.faller_state == 1:
+                    grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}]"
+                    grid[self.top_row + 1][self.column] = f"[{top_content[1]}-"
+                else: #it's landing
+                    grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}|"
+                    grid[self.top_row + 1][self.column] = f"|{top_content[1]}-"
+
+                self.direction = 'horizontal'
 
 class Virus:
     def __init__(self, row, column, color):
@@ -555,31 +584,4 @@ class Virus:
         self.color = color
         self.is_remove = False
 
-    '''def get_virus_position(self):
-        return self.row, self.column
-    
-    def set_virus_position(self, row, column):
-        self.row = row
-        self.column = column
-    
-    def get_virus_color(self):
-        return self.color 
-
-    def set_virus_state(self, is_remove):
-        self.is_remove = is_remove
-    
-    def get_virus_state(self):
-        return self.is_remove'''
-
-
-
-'''#checking if it lands on top of another item, if so, change state from falling to landing 
-                elif (self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ') and (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ') and (self.faller.faller_state == self.FALLING):
-                    self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
-                    self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
-                    self.faller.set_faller_position(curr_row+1, curr_col)
-                    self.faller.faller_state = self.LANDING
-
-                    #clear old position
-                    self.grid[curr_row][curr_col] = '   '
-                    self.grid[curr_row][curr_col+1] = '   '''
+  
