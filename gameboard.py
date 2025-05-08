@@ -226,6 +226,18 @@ class GameBoard:
                         #clear old position
                         self.grid[current_row][column] = '   '
                         self.grid[current_row][column+1] = '   '
+
+                        #this is to apply gravity to previous row's cell
+                        '''previous_row = current_row -1
+                        while previous_row >= 0:
+                            curr_row = previous_row + 1 
+                            self.grid[curr_row][column] = self.grid[previous_row][column]
+                            self.grid[curr_row][column+1] = self.grid[previous_row][column+1]
+
+                            self.grid[previous_row][column] = '   '
+                            self.grid[previous_row][column+1] = '   '
+                            previous_row -= 1'''
+
                         current_row += 1
                         isGravity = True
                         self.print_grid()
@@ -238,6 +250,18 @@ class GameBoard:
                         self.grid[current_row+1][column] = f" {current_cell} "
                         #clear old position
                         self.grid[current_row][column] = '   '
+                        
+                        #this is to apply gravity to previous row's cell
+                        '''previous_row = current_row -1
+                        while previous_row >= 0:
+                            curr_row = previous_row + 1 
+                            self.grid[curr_row][column] = self.grid[previous_row][column]
+                            self.grid[curr_row][column+1] = self.grid[previous_row][column+1]
+
+                            self.grid[previous_row][column] = '   '
+                            self.grid[previous_row][column+1] = '   '
+                            previous_row -= 1'''
+
                         current_row += 1
                         self.print_grid()
                         isGravity = True
@@ -488,7 +512,6 @@ class Vitamin:
 
                     self.direction = 'horizontal'
                     self.column = new_left_column
-                    #self.row = self.top_row+ 1
                 else:
                     #this is when wall kick should be applied but there's something on the left, so do nothing
                     return 
@@ -556,6 +579,7 @@ class Vitamin:
                     self.column = new_left_column
 
                     self.direction = 'horizontal'
+
                     #self.row = self.top_row+ 1
                 else:
                     #this is when wall kick should be applied but there's something on the left, so do nothing
