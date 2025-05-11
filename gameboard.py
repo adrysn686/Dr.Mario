@@ -205,68 +205,78 @@ class GameBoard:
             else:
                 self.gravity()'''
 
-    def gravity(self):
+    '''def gravity(self):
         isGravity = False
         #iterates through the rows starting from the last row
         #gravity can only happen when capsule is NOT in the last row, thus self.rows-2
-        for row in range(self.rows-2, -1, -1):
-            for column in range (self.columns):
-                current_cell = self.grid[row][column].strip()
-                if current_cell == '   ':
-                    continue
-                #this is a double capsule 
-                elif '-' in current_cell:
-                    #checking left capsule
-                    current_row = row
-                    while current_row < self.rows-1 and self.grid[current_row+1][column] == '   ' and self.grid[current_row+1][column+1] == '   ':
-                        #left capsule falls one position
-                        self.grid[current_row+1][column] = f" {current_cell} "
-                        #right capsule falls one position
-                        self.grid[current_row+1][column+1] = f" {self.grid[row][column+1]} "
-                        #clear old position
-                        self.grid[current_row][column] = '   '
-                        self.grid[current_row][column+1] = '   '
+        at_last_row = False
+        while not at_last_row:
+            for i in range(self.columns):
+                if self.grid[self.rows-1][i] != '   ':
+                    at_last_row = True
+            for row in range(self.rows-2, -1, -1):
+                for column in range (self.columns):
+                    current_cell = self.grid[row][column].strip()
+                    if current_cell == '   ':
+                        continue
+                    #this is a double capsule 
+                    elif '-' in current_cell:
+                        #checking left capsule
+                        current_row = row
+                        if current_row < self.rows-1 and self.grid[current_row+1][column] == '   ' and self.grid[current_row+1][column+1] == '   ':
+                            #left capsule falls one position
+                            self.grid[current_row+1][column] = f" {current_cell} "
+                            #right capsule falls one position
+                            self.grid[current_row+1][column+1] = f" {self.grid[row][column+1]} "
+                            #clear old position
+                            self.grid[current_row][column] = '   '
+                            self.grid[current_row][column+1] = '   '
 
-                        #this is to apply gravity to previous row's cell
-                        '''previous_row = current_row -1
-                        while previous_row >= 0:
-                            curr_row = previous_row + 1 
-                            self.grid[curr_row][column] = self.grid[previous_row][column]
-                            self.grid[curr_row][column+1] = self.grid[previous_row][column+1]
 
-                            self.grid[previous_row][column] = '   '
-                            self.grid[previous_row][column+1] = '   '
-                            previous_row -= 1'''
-
-                        current_row += 1
+                    #this is a single capsule 
+                    elif current_cell in ['R', 'B', 'Y']:
+                        current_row = row
+                        if current_row < self.rows-1 and self.grid[current_row+1][column] == '   ':
+                            #capsule falls one position
+                            self.grid[current_row+1][column] = f" {current_cell} "
+                            #clear old position
+                            self.grid[current_row][column] = '   '
+                        #self.print_grid()
                         isGravity = True
-                        self.print_grid()
+            print('g1')
+            self.print_grid()
+            #if isGravity is True:
+                #self.matches()'''
+    def gravity(self):
+        while True:
+            isGravity = False
+            for row in range(self.rows-2, -1, -1):
+                for column in range(self.columns):
+                    current_cell = self.grid[row][column].strip()
+                    if current_cell == '   ':
+                        continue
+                    elif '-' in current_cell:
+                        current_row = row
+                        if (current_row < self.rows - 1 and
+                            column + 1 < self.columns and
+                            self.grid[current_row + 1][column] == '   ' and
+                            self.grid[current_row + 1][column + 1] == '   '):
+                            self.grid[current_row + 1][column] = f" {current_cell} "
+                            self.grid[current_row + 1][column + 1] = f" {self.grid[row][column + 1]} "
+                            self.grid[current_row][column] = '   '
+                            self.grid[current_row][column + 1] = '   '
+                            isGravity = True
 
-                #this is a single capsule 
-                elif current_cell in ['R', 'B', 'Y']:
-                    current_row = row
-                    while current_row < self.rows-1 and self.grid[current_row+1][column] == '   ':
-                        #capsule falls one position
-                        self.grid[current_row+1][column] = f" {current_cell} "
-                        #clear old position
-                        self.grid[current_row][column] = '   '
-                        
-                        #this is to apply gravity to previous row's cell
-                        '''previous_row = current_row -1
-                        while previous_row >= 0:
-                            curr_row = previous_row + 1 
-                            self.grid[curr_row][column] = self.grid[previous_row][column]
-                            self.grid[curr_row][column+1] = self.grid[previous_row][column+1]
+                    elif current_cell in ['R', 'B', 'Y']:
+                        current_row = row
+                        if self.grid[current_row + 1][column] == '   ':
+                            self.grid[current_row + 1][column] = f" {current_cell} "
+                            self.grid[current_row][column] = '   '
+                            isGravity = True
 
-                            self.grid[previous_row][column] = '   '
-                            self.grid[previous_row][column+1] = '   '
-                            previous_row -= 1'''
-
-                        current_row += 1
-                        self.print_grid()
-                        isGravity = True
-        #if isGravity is True:
-            #self.matches()
+            if not isGravity:
+                break  # stop looping when nothing moved
+            self.print_grid()
 
     def rotate_gameboard_counter_clockwise(self):
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
