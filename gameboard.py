@@ -12,6 +12,8 @@ class GameBoard:
         self.empty =  '   '
         self.gameover = False
         self.row_list = row_list
+        self.board_matches = False
+        self.connected_capsule_in_match = False
 
         #for empty
         if row_list is None:
@@ -24,18 +26,22 @@ class GameBoard:
         #for CONTENTS 
         else:
             for i in range(rows):
-                row = []
-                for char in row_list[i]:
+                row_lst = []
+                for j in range(len(row_list[i])):
+                    char = row_list[i][j]
+                    if char in ['r','b','y']:
+                        row = int(i)
+                        column = int(j)
+                        color = char
+                        a_virus = Virus(row, column, color)
+                        self.virus_lst.append(a_virus)
                     formatted = f" {char} "
-                    row.append(formatted)
-                self.grid.append(row)
-            no_matches = True
-            while self.matches():
-                no_matches = False
-                self.gravity()
-            if no_matches is True:
+                    row_lst.append(formatted)
+                self.grid.append(row_lst)
+            self.matches()
+            if not self.board_matches:
                 self.print_grid()
-                     
+
     
     def create_faller(self, command_lst):
          #if number of columns is odd
@@ -80,203 +86,221 @@ class GameBoard:
 
 
     def time(self):
-        #if horizontal 
-        if self.faller.direction == 'horizontal':
-            curr_row = self.faller.row
-            curr_col = self.faller.column
-
-            left_capsule = self.grid[curr_row][curr_col]
-            right_capsule = self.grid[curr_row][curr_col+1]
-
-            if curr_row < self.rows-1:
-                #checking if during falling it's going to land on the last row OR if there's something under. If so, change state to landing 
-                if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and (curr_row+1 == self.rows-1 or (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ')):
-                    self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
-                    self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
-                    self.faller.set_faller_position(curr_row+1, curr_col)
-                    self.faller.faller_state = self.LANDING
-
-                    #clear old position
-                    self.grid[curr_row][curr_col] = '   '
-                    self.grid[curr_row][curr_col+1] = '   '
-
-                #place capsules in new positions 
-                elif self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING:
-                    self.grid[curr_row+1][curr_col] = left_capsule
-                    self.grid[curr_row+1][curr_col+1] = right_capsule
-                    self.faller.set_faller_position(curr_row+1, curr_col)
-
-                    #clear old position
-                    self.grid[curr_row][curr_col] = '   '
-                    self.grid[curr_row][curr_col+1] = '   '
-                
-                
-                #change faller state to landing if something is under 
-                elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.FALLING:
-                    self.grid[curr_row][curr_col] = f"|{left_capsule[1:]}"
-                    self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]}|"
-
-                    self.faller.faller_state = self.LANDING
-                
-                #faller changes from landing to freezing 
-                elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.LANDING:
-                    self.grid[curr_row][curr_col] = f" {left_capsule[1:]}"
-                    self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]} "
-
-                    self.faller.faller_state = self.FREEZING
-            #this is when faller is in the last row 
-            elif curr_row == self.rows-1:
-                if self.faller.faller_state == self.FALLING:
-                    self.grid[curr_row][curr_col] = f"|{left_capsule[1:]}"
-                    self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]}|"
-
-                    self.faller.faller_state = self.LANDING
-                elif self.faller.faller_state == self.LANDING:
-                    self.grid[curr_row][curr_col] = f" {left_capsule[1:]}"
-                    self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]} "
-
-                    self.faller.faller_state = self.FREEZING
+        #when faller is frozen
+        if self.faller is None:
+            #print('t100')
+            if self.board_matches is True:
+                if self.connected_capsule_in_match is True:
+                    self.print_grid()
+                    self.connected_capsule_in_match = False
+                else:
+                #print('here')
+                    self.gravity()
             else:
-                return
-            no_matches = True
-            while self.matches():
-                no_matches = False
-                self.gravity()
-            if no_matches is True:
                 self.print_grid()
-        
-        #curr_row = self.faller.row
-        #curr_col = self.faller.column
-        elif self.faller.direction == 'vertical':
-            curr_row = self.faller.top_row
-            curr_col = self.faller.column
+            if self.is_board_empty():
+                self.print_grid()
+            elif self.is_board_frozen():
+                self.matches()
+        #faller state
+        else:    
+            #if horizontal 
+            if self.faller.direction == 'horizontal':
+                curr_row = self.faller.row
+                curr_col = self.faller.column
 
-            top_capsule = self.grid[curr_row][curr_col]
-            bottom_capsule = self.grid[curr_row+1][curr_col]
+                left_capsule = self.grid[curr_row][curr_col]
+                right_capsule = self.grid[curr_row][curr_col+1]
 
-            if curr_row < self.rows-2:
-                #check if next capsule after bottom is empty 
-                if self.grid[curr_row+2][curr_col] == '   ' and self.faller.faller_state == self.FALLING:
-                    #clear old position
-                    self.grid[curr_row][curr_col] = '   '
-                    self.grid[curr_row+1][curr_col] = '   '
+                if curr_row < self.rows-1:
+                    #checking if during falling it's going to land on the last row OR if there's something under. If so, change state to landing 
+                    if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and (curr_row+1 == self.rows-1 or (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ')):
+                        #print('g00')
+                        self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
+                        self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
+                        self.faller.set_faller_position(curr_row+1, curr_col)
+                        self.faller.faller_state = self.LANDING
 
-                     #place capsules in new positions 
-                    self.grid[curr_row+1][curr_col] = top_capsule
-                    self.grid[curr_row+2][curr_col] = bottom_capsule
-                    self.faller.set_faller_position(curr_row+1, curr_col)
+                        #clear old position
+                        self.grid[curr_row][curr_col] = '   '
+                        self.grid[curr_row][curr_col+1] = '   '
+
+                    #place capsules in new positions 
+                    elif self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING:
+                        #print('g100')
+                        self.grid[curr_row+1][curr_col] = left_capsule
+                        self.grid[curr_row+1][curr_col+1] = right_capsule
+                        self.faller.set_faller_position(curr_row+1, curr_col)
+
+                        #clear old position
+                        self.grid[curr_row][curr_col] = '   '
+                        self.grid[curr_row][curr_col+1] = '   '
+                    
+                    
+                    #change faller state to landing if something is under 
+                    elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.FALLING:
+                        #print('g200')
+                        self.grid[curr_row][curr_col] = f"|{left_capsule[1:]}"
+                        self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]}|"
+
+                        self.faller.faller_state = self.LANDING
+                    
+                    #faller changes from landing to freezing 
+                    elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.LANDING:
+                        #print('g300')
+                        self.grid[curr_row][curr_col] = f" {left_capsule[1:]}"
+                        self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]} "
+
+                        self.faller.faller_state = self.FREEZING
+                        self.faller = None
+                        self.matches()
+                #this is when faller is in the last row 
+                elif curr_row == self.rows-1:
+                    if self.faller.faller_state == self.FALLING:
+                        #print('g400')
+                        self.grid[curr_row][curr_col] = f"|{left_capsule[1:]}"
+                        self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]}|"
+
+                        self.faller.faller_state = self.LANDING
+                    elif self.faller.faller_state == self.LANDING:
+                        #print('g500')
+                        self.grid[curr_row][curr_col] = f" {left_capsule[1:]}"
+                        self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]} "
+
+                        self.faller.faller_state = self.FREEZING
+                        self.faller = None
+                        self.matches()
+                else:
+                    return
                 
-                #change faller state to landing if something is under 
-                elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.FALLING:
-                    self.grid[curr_row][curr_col] = f"|{top_capsule[1]}|"
-                    self.grid[curr_row+1][curr_col] = f"|{bottom_capsule[1]}|"
+            
+            #curr_row = self.faller.row
+            #curr_col = self.faller.column
+            elif self.faller.direction == 'vertical':
+                curr_row = self.faller.top_row
+                curr_col = self.faller.column
 
-                    self.faller.faller_state = self.LANDING
+                top_capsule = self.grid[curr_row][curr_col]
+                bottom_capsule = self.grid[curr_row+1][curr_col]
+
+                if curr_row < self.rows-2:
+                    #check if next capsule after bottom is empty 
+                    if self.grid[curr_row+2][curr_col] == '   ' and self.faller.faller_state == self.FALLING:
+                        #clear old position
+                        self.grid[curr_row][curr_col] = '   '
+                        self.grid[curr_row+1][curr_col] = '   '
+
+                        #place capsules in new positions 
+                        self.grid[curr_row+1][curr_col] = top_capsule
+                        self.grid[curr_row+2][curr_col] = bottom_capsule
+                        self.faller.set_faller_position(curr_row+1, curr_col)
+                    
+                    #change faller state to landing if something is under 
+                    elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.FALLING:
+                        self.grid[curr_row][curr_col] = f"|{top_capsule[1]}|"
+                        self.grid[curr_row+1][curr_col] = f"|{bottom_capsule[1]}|"
+
+                        self.faller.faller_state = self.LANDING
+                    
+                    #faller changes from landing to freezing 
+                    elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.LANDING:
+                        self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
+                        self.grid[curr_row+1][curr_col] = f" {bottom_capsule[1]} "
+
+                        self.faller.faller_state = self.FREEZING
+                        self.faller = None
+                        self.matches()
+                #this is when faller is in the last row 
+                elif curr_row == self.rows-2:
+                    if self.faller.faller_state == self.FALLING:
+                        self.grid[curr_row][curr_col] = f"|{top_capsule[1]}|"
+                        self.grid[curr_row+1][curr_col] = f"|{bottom_capsule[1]}|"
+
+                        self.faller.faller_state = self.LANDING
+                    elif self.faller.faller_state == self.LANDING:
+                        self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
+                        self.grid[curr_row+1][curr_col] = f" {bottom_capsule[1]} "
+
+                        self.faller.faller_state = self.FREEZING
+                        self.faller = None
+                        self.matches()
+                else:
+                    return
+            if not self.board_matches:
+                self.print_grid()
                 
-                #faller changes from landing to freezing 
-                elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.LANDING:
-                    self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
-                    self.grid[curr_row+1][curr_col] = f" {bottom_capsule[1]} "
-
-                    self.faller.faller_state = self.FREEZING
-            #this is when faller is in the last row 
-            elif curr_row == self.rows-2:
-                if self.faller.faller_state == self.FALLING:
-                    self.grid[curr_row][curr_col] = f"|{top_capsule[1]}|"
-                    self.grid[curr_row+1][curr_col] = f"|{bottom_capsule[1]}|"
-
-                    self.faller.faller_state = self.LANDING
-                elif self.faller.faller_state == self.LANDING:
-                    self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
-                    self.grid[curr_row+1][curr_col] = f" {bottom_capsule[1]} "
-
-                    self.faller.faller_state = self.FREEZING
-            else:
-                return
-            no_matches = True
-            while self.matches():
-                no_matches = False
-                self.gravity()
-            if no_matches is True:
-                self.print_grid()
-
-            '''if not self.matches():
-                self.print_grid()
-            else:
-                self.gravity()'''
-
-    '''def gravity(self):
-        isGravity = False
-        #iterates through the rows starting from the last row
-        #gravity can only happen when capsule is NOT in the last row, thus self.rows-2
-        at_last_row = False
-        while not at_last_row:
-            for i in range(self.columns):
-                if self.grid[self.rows-1][i] != '   ':
-                    at_last_row = True
-            for row in range(self.rows-2, -1, -1):
-                for column in range (self.columns):
-                    current_cell = self.grid[row][column].strip()
-                    if current_cell == '   ':
-                        continue
-                    #this is a double capsule 
-                    elif '-' in current_cell:
-                        #checking left capsule
-                        current_row = row
-                        if current_row < self.rows-1 and self.grid[current_row+1][column] == '   ' and self.grid[current_row+1][column+1] == '   ':
-                            #left capsule falls one position
-                            self.grid[current_row+1][column] = f" {current_cell} "
-                            #right capsule falls one position
-                            self.grid[current_row+1][column+1] = f" {self.grid[row][column+1]} "
-                            #clear old position
-                            self.grid[current_row][column] = '   '
-                            self.grid[current_row][column+1] = '   '
-
-
-                    #this is a single capsule 
-                    elif current_cell in ['R', 'B', 'Y']:
-                        current_row = row
-                        if current_row < self.rows-1 and self.grid[current_row+1][column] == '   ':
-                            #capsule falls one position
-                            self.grid[current_row+1][column] = f" {current_cell} "
-                            #clear old position
-                            self.grid[current_row][column] = '   '
-                        #self.print_grid()
-                        isGravity = True
-            print('g1')
-            self.print_grid()
-            #if isGravity is True:
-                #self.matches()'''
+ 
     def gravity(self):
-        while True:
-            isGravity = False
-            for row in range(self.rows-2, -1, -1):
-                for column in range(self.columns):
-                    current_cell = self.grid[row][column].strip()
-                    if current_cell == '   ':
-                        continue
-                    elif '-' in current_cell:
-                        current_row = row
-                        if (current_row < self.rows - 1 and
-                            column + 1 < self.columns and
-                            self.grid[current_row + 1][column] == '   ' and
-                            self.grid[current_row + 1][column + 1] == '   '):
-                            self.grid[current_row + 1][column] = f" {current_cell} "
-                            self.grid[current_row + 1][column + 1] = f" {self.grid[row][column + 1]} "
-                            self.grid[current_row][column] = '   '
-                            self.grid[current_row][column + 1] = '   '
-                            isGravity = True
+        isGravity = False
+        for row in range(self.rows-2, -1, -1):
+            for column in range(self.columns):
+                current_cell = self.grid[row][column].strip()
+                if current_cell == '   ':
+                    continue
+                elif '-' in current_cell:
+                    current_row = row
+                    if (current_row < self.rows - 1 and
+                        column + 1 < self.columns and
+                        self.grid[current_row + 1][column] == '   ' and
+                        self.grid[current_row + 1][column + 1] == '   '):
+                        self.grid[current_row + 1][column] = f" {current_cell} "
+                        self.grid[current_row + 1][column + 1] = f" {self.grid[row][column + 1]} "
+                        self.grid[current_row][column] = '   '
+                        self.grid[current_row][column + 1] = '   '
+                        isGravity = True
 
-                    elif current_cell in ['R', 'B', 'Y']:
-                        current_row = row
-                        if self.grid[current_row + 1][column] == '   ':
-                            self.grid[current_row + 1][column] = f" {current_cell} "
-                            self.grid[current_row][column] = '   '
-                            isGravity = True
-
-            if not isGravity:
-                break  # stop looping when nothing moved
+                elif current_cell in ['R', 'B', 'Y']:
+                    current_row = row
+                    if self.grid[current_row + 1][column] == '   ':
+                        self.grid[current_row + 1][column] = f" {current_cell} "
+                        self.grid[current_row][column] = '   '
+                        isGravity = True
+        if isGravity:
             self.print_grid()
+
+    def is_board_empty(self):
+        isEmpty = False
+        for row in range(self.rows):
+            for column in range(self.columns):
+                cell = self.grid[row][column]
+                if cell.strip() != '':
+                    isEmpty = False
+                    return isEmpty
+                else:
+                    isEmpty = True
+        return isEmpty
+
+    
+    def is_board_frozen(self):
+        all_frozen = False
+        copy_grid = [row[:] for row in self.grid]
+        isGravity = False
+        for row in range(self.rows-2, -1, -1):
+            for column in range(self.columns):
+                current_cell = self.grid[row][column].strip()
+                if current_cell == '   ':
+                    continue
+                elif '-' in current_cell:
+                    current_row = row
+                    if (current_row < self.rows - 1 and
+                        column + 1 < self.columns and
+                        copy_grid[current_row + 1][column] == '   ' and
+                        copy_grid[current_row + 1][column + 1] == '   '):
+                        copy_grid[current_row + 1][column] = f" {current_cell} "
+                        copy_grid[current_row + 1][column + 1] = f" {copy_grid[row][column + 1]} "
+                        copy_grid[current_row][column] = '   '
+                        copy_grid[current_row][column + 1] = '   '
+                        isGravity = True
+
+                elif current_cell in ['R', 'B', 'Y']:
+                    current_row = row
+                    if copy_grid[current_row + 1][column] == '   ':
+                        copy_grid[current_row + 1][column] = f" {current_cell} "
+                        copy_grid[current_row][column] = '   '
+                        isGravity = True
+        if copy_grid == self.grid:
+            all_frozen = True
+        return all_frozen
 
     def rotate_gameboard_counter_clockwise(self):
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
@@ -301,6 +325,7 @@ class GameBoard:
 
     def matches(self):
         isMatch = False
+        isConnected = False
         matches = set()
         #horizontal match
         for row in range(self.rows):
@@ -331,6 +356,7 @@ class GameBoard:
                     self.grid[row][column] = self.grid[row][column].replace('-', '').strip()
             self.grid[row][column] = f"*{self.grid[row][column].strip()}*"
         if isMatch is True:
+            #print('match1')
             self.print_grid()
             
         for row, column in matches:
@@ -338,15 +364,18 @@ class GameBoard:
                 #if the cell next to the ones after matching have '-' in it, 
                 #we know it's a double capsule that changes to a single capsule
                 if '-' in self.grid[row][column+1]:
+                    #print('match2')
                     self.grid[row][column+1] = self.grid[row][column+1].upper().replace('-', ' ')
-            
+                    isConnected = True 
+    
             self.grid[row][column] = '   '
             for virus in self.virus_lst:
                 if virus.row == row and virus.column == column:
                     virus.is_remove = True
-        
-        if isMatch is True:
-            self.print_grid()
+    
+        self.board_matches = isMatch
+        self.connected_capsule_in_match  = isConnected
+
         
         #remove viruses from virus list 
         i = 0
@@ -355,7 +384,7 @@ class GameBoard:
                 del self.virus_lst[i]
             else:
                 i += 1
-        return isMatch
+        #return isMatch
         #self.gravity()
 
 
@@ -617,5 +646,3 @@ class Virus:
         self.column = column
         self.color = color
         self.is_remove = False
-
-  
