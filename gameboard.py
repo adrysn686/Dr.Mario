@@ -14,6 +14,7 @@ class GameBoard:
         self.row_list = row_list
         self.board_matches = False
         self.connected_capsule_in_match = False
+        self.gravity_happening = False
 
         #for empty
         if row_list is None:
@@ -44,6 +45,9 @@ class GameBoard:
 
     
     def create_faller(self, command_lst):
+        if self.gravity_happening:
+            self.print_grid()
+            return
          #if number of columns is odd
         if self.columns % 2 == 1:
             middle_col = self.columns // 2
@@ -88,21 +92,28 @@ class GameBoard:
     def time(self):
         #when faller is frozen
         if self.faller is None:
-            #print('t100')
+            #check matches first
             if self.board_matches is True:
                 if self.connected_capsule_in_match is True:
+                    #if there's a connected capsule, print the grid first
                     self.print_grid()
                     self.connected_capsule_in_match = False
                 else:
-                #print('here')
+                    #apply gravity if matches is true 
+                    #self.board_matches stays true until everything everything is frozen. 
                     self.gravity()
             else:
+                #if there's no match and no faller, just print the grid again
                 self.print_grid()
+    
             if self.is_board_empty():
+                #if there's nothing on the board just print it 
                 self.print_grid()
             elif self.is_board_frozen():
+                #if everything on the board is frozen, then apply matching again. This is when self.board_matches can be changed. (gravity will be called again in the next time interval)
                 self.matches()
-        #faller state
+        
+        #when faller is falling/landing (no matching occurs)
         else:    
             #if horizontal 
             if self.faller.direction == 'horizontal':
@@ -257,6 +268,7 @@ class GameBoard:
                         isGravity = True
         if isGravity:
             self.print_grid()
+        self.gravity_happening = isGravity
 
     def is_board_empty(self):
         isEmpty = False
@@ -303,22 +315,34 @@ class GameBoard:
         return all_frozen
 
     def rotate_gameboard_counter_clockwise(self):
+        if self.gravity_happening:
+            self.print_grid()
+            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.rotate_faller_counter_clockwise(self.grid)
         self.print_grid()
 
     def rotate_gameboard_clockwise(self):
+        if self.gravity_happening:
+            self.print_grid()
+            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.rotate_faller_clockwise(self.grid)
         self.print_grid()
     
     def move_right(self):
+        if self.gravity_happening:
+            self.print_grid()
+            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.move_right(self.grid)
         
         self.print_grid()
 
     def move_left(self):
+        if self.gravity_happening:
+            self.print_grid()
+            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.move_left(self.grid)
         self.print_grid()
@@ -389,6 +413,9 @@ class GameBoard:
 
 
     def create_virus(self, command_lst):
+        if self.gravity_happening:
+            self.print_grid()
+            return
         row = int(command_lst[1])
         column = int(command_lst[2])
         color = command_lst[3].lower()
