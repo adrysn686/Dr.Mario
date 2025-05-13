@@ -2,15 +2,10 @@ import shlex
 from gameboard import GameBoard
 
 def main():
-    while True:
-        rows = int(input())
-        columns = int(input())
-        if rows >= 4 and columns >= 3:
-            break
-    while True:
-        create_board_command = input()
-        if create_board_command in ['EMPTY', "CONTENTS"]:
-            break
+    rows = int(input())
+    columns = int(input())
+    create_board_command = input()
+
     if create_board_command == 'EMPTY':
         gameboard = GameBoard(rows, columns)
     
@@ -40,11 +35,7 @@ def main():
             gameboard.move_right()
         elif command[0] == '<':
             gameboard.move_left()
-        elif command[0] == 'V':
-            gameboard.create_virus()
         
-
-
 
 if __name__ == '__main__':
     main()

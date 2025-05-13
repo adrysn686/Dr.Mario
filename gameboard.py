@@ -45,10 +45,18 @@ class GameBoard:
 
     
     def create_faller(self, command_lst):
-        if self.gravity_happening:
+        '''if self.gravity_happening:
             self.print_grid()
-            return
-         #if number of columns is odd
+            return'''
+
+        for row in range(self.rows):
+            for column in range(self.columns):
+                cell = self.grid[row][column]
+                if any(char in cell for char in['[', ']', '|']):
+                    self.print_grid()
+                    return
+    
+        #if number of columns is odd
         if self.columns % 2 == 1:
             middle_col = self.columns // 2
         #if number of columns is even 
@@ -93,7 +101,7 @@ class GameBoard:
         #when faller is frozen
         if self.faller is None:
             #check matches first
-            if self.board_matches is True:
+            if (self.board_matches is True) or (not self.is_board_frozen()):
                 if self.connected_capsule_in_match is True:
                     #if there's a connected capsule, print the grid first
                     self.print_grid()
@@ -195,32 +203,44 @@ class GameBoard:
                 bottom_capsule = self.grid[curr_row+1][curr_col]
 
                 if curr_row < self.rows-2:
-                    #check if next capsule after bottom is empty 
+                    #check if next capsule after bottom is empty to move it DOWN
                     if self.grid[curr_row+2][curr_col] == '   ' and self.faller.faller_state == self.FALLING:
                         #clear old position
                         self.grid[curr_row][curr_col] = '   '
                         self.grid[curr_row+1][curr_col] = '   '
 
-                        #place capsules in new positions 
-                        self.grid[curr_row+1][curr_col] = top_capsule
-                        self.grid[curr_row+2][curr_col] = bottom_capsule
-                        self.faller.set_faller_position(curr_row+1, curr_col)
+                        if curr_row < self.rows-3:
+                            if self.grid[curr_row+3][curr_col] == '   ':
+                                #place capsules in new positions (STAYS FALLING STATE)
+                                self.grid[curr_row+1][curr_col] = top_capsule
+                                self.grid[curr_row+2][curr_col] = bottom_capsule
+                                self.faller.set_faller_position(curr_row+1, curr_col)
+                    
+                            else:
+                                #place capsules in new positions (CHANGES TO LANDING)
+                                self.grid[curr_row+1][curr_col] = f"|{top_capsule[1]}|"
+                                self.grid[curr_row+2][curr_col] = f"|{bottom_capsule[1]}|"
+                                self.faller.set_faller_position(curr_row+1, curr_col)
+                                self.faller.faller_state = self.LANDING
                     
                     #change faller state to landing if something is under 
                     elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.FALLING:
                         self.grid[curr_row][curr_col] = f"|{top_capsule[1]}|"
                         self.grid[curr_row+1][curr_col] = f"|{bottom_capsule[1]}|"
-
+                        self.faller.set_faller_position(curr_row, curr_col)
                         self.faller.faller_state = self.LANDING
                     
                     #faller changes from landing to freezing 
                     elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.LANDING:
                         self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
+                        print(f"TOP: {top_capsule[1]}")
+                        print(f" BOTTOM: {bottom_capsule[1]}")
                         self.grid[curr_row+1][curr_col] = f" {bottom_capsule[1]} "
 
                         self.faller.faller_state = self.FREEZING
                         self.faller = None
                         self.matches()
+        
                 #this is when faller is in the last row 
                 elif curr_row == self.rows-2:
                     if self.faller.faller_state == self.FALLING:
@@ -315,34 +335,22 @@ class GameBoard:
         return all_frozen
 
     def rotate_gameboard_counter_clockwise(self):
-        if self.gravity_happening:
-            self.print_grid()
-            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.rotate_faller_counter_clockwise(self.grid)
         self.print_grid()
 
     def rotate_gameboard_clockwise(self):
-        if self.gravity_happening:
-            self.print_grid()
-            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.rotate_faller_clockwise(self.grid)
         self.print_grid()
     
     def move_right(self):
-        if self.gravity_happening:
-            self.print_grid()
-            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.move_right(self.grid)
         
         self.print_grid()
 
     def move_left(self):
-        if self.gravity_happening:
-            self.print_grid()
-            return
         if self.faller.faller_state in [self.LANDING, self.FALLING]:
             self.faller.move_left(self.grid)
         self.print_grid()
@@ -453,13 +461,30 @@ class Vitamin:
         grid_column = len(grid[0])
         if self.direction == 'vertical':
             new_column = self.column + 1
+            top_capsule = grid[self.top_row][self.column]
+            bottom_capsule = grid[self.top_row + 1][self.column]
             if new_column < grid_column:
-                #move right 
-                grid[self.top_row][new_column] = grid[self.top_row][self.column]
-                grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
-                grid[self.top_row][self.column] = '   '
-                grid[self.top_row + 1][self.column] = '   '
+                #if there's something under the lower capsule after moving, change faller state.
+                if grid[self.top_row + 2][new_column] != '   ':
+                    if self.faller_state == 1:
+                        grid[self.top_row][new_column] = f"|{top_capsule[1]}|"
+                        grid[self.top_row + 1][new_column] = f"|{bottom_capsule[1]}|"
+                        grid[self.top_row][self.column] = '   '
+                        grid[self.top_row + 1][self.column] = '   '
+                    elif self.faller_state == 2:
+                        grid[self.top_row][new_column] = f" {top_capsule[1]} "
+                        grid[self.top_row + 1][new_column] = f" {bottom_capsule[1]} "
+                        grid[self.top_row][self.column] = '   '
+                        grid[self.top_row + 1][self.column] = '   '
+                else:
+                    #if there's nothing under lower capsule after moving, faller state remains the same. 
+                    #move right 
+                    grid[self.top_row][new_column] = grid[self.top_row][self.column]
+                    grid[self.top_row + 1][new_column] = grid[self.top_row + 1][self.column]
+                    grid[self.top_row][self.column] = '   '
+                    grid[self.top_row + 1][self.column] = '   '
                 
+                #not sure if this should be placed here 
                 self.column = new_column
             else:
                 return
@@ -470,11 +495,27 @@ class Vitamin:
             if new_right_column < grid_column:
                 left_capsule = grid[self.row][self.column]
                 right_capsule = grid[self.row][self.column+1]
+                print(left_capsule)
+                print(right_capsule)
+                #if there's something under after moving, change faller state 
+                if grid[self.row+1][new_left_column] != '   ' or grid[self.row+1][new_right_column] != '   ':
+                    # if it's currently in falling state, change it to landing 
+                    if self.faller_state == 1:
+                        grid[self.row][new_left_column] = f"|{left_capsule[1:]}"
+                        grid[self.row][new_right_column] = f"{right_capsule[:-1]}|"
+                        grid[self.row][self.column] = '   '
+                    #it's in landing state, change it to freezing 
+                    elif self.faller_state == 2:
+                        grid[self.row][new_left_column] = f" {left_capsule[1:]}"
+                        grid[self.row][new_right_column] = f"{right_capsule[:-1]} "
+                        grid[self.row][self.column] = '   '
+                #if there's nothing under, so faller state remains the same 
+                else:
+                    grid[self.row][new_left_column] = left_capsule
+                    grid[self.row][new_right_column] = right_capsule
+                    grid[self.row][self.column] = '   '
 
-                grid[self.row][new_left_column] = left_capsule
-                grid[self.row][new_right_column] = right_capsule
-                grid[self.row][self.column] = '   '
-
+                #not sure if this should be placed here 
                 self.column = new_left_column
             else:
                 return
