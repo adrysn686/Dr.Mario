@@ -101,7 +101,8 @@ class GameBoard:
         #when faller is frozen
         if self.faller is None:
             #check matches first
-            if (self.board_matches is True) or (not self.is_board_frozen()):
+            frozen = self.is_board_frozen()
+            if (self.board_matches is True) or (not frozen):
                 if self.connected_capsule_in_match is True:
                     #if there's a connected capsule, print the grid first
                     self.print_grid()
@@ -312,15 +313,28 @@ class GameBoard:
                     continue
                 elif '-' in current_cell:
                     current_row = row
-                    if (current_row < self.rows - 1 and
+                    #right cell case 
+                    if current_cell.strip().startswith('-'):
+                        if (current_row < self.rows - 1 and
+                        column + 1 < self.columns and
+                        copy_grid[current_row + 1][column] == '   ' and
+                        copy_grid[current_row + 1][column - 1] == '   '):
+                            copy_grid[current_row + 1][column] = f" {current_cell} "
+                            copy_grid[current_row + 1][column - 1] = f" {copy_grid[row][column - 1]} "
+                            copy_grid[current_row][column] = '   '
+                            copy_grid[current_row][column - 1] = '   '
+                            isGravity = True
+                            
+                    else:
+                        if (current_row < self.rows - 1 and
                         column + 1 < self.columns and
                         copy_grid[current_row + 1][column] == '   ' and
                         copy_grid[current_row + 1][column + 1] == '   '):
-                        copy_grid[current_row + 1][column] = f" {current_cell} "
-                        copy_grid[current_row + 1][column + 1] = f" {copy_grid[row][column + 1]} "
-                        copy_grid[current_row][column] = '   '
-                        copy_grid[current_row][column + 1] = '   '
-                        isGravity = True
+                            copy_grid[current_row + 1][column] = f" {current_cell} "
+                            copy_grid[current_row + 1][column + 1] = f" {copy_grid[row][column + 1]} "
+                            copy_grid[current_row][column] = '   '
+                            copy_grid[current_row][column + 1] = '   '
+                            isGravity = True
 
                 elif current_cell in ['R', 'B', 'Y']:
                     current_row = row
