@@ -214,27 +214,27 @@ class GameBoard:
                                 #place capsules in new positions (STAYS FALLING STATE)
                                 self.grid[curr_row+1][curr_col] = top_capsule
                                 self.grid[curr_row+2][curr_col] = bottom_capsule
-                                self.faller.set_faller_position(curr_row+1, curr_col)
+                                self.faller.set_faller_vertical_position(curr_row+1, curr_col)
                     
                             else:
                                 #place capsules in new positions (CHANGES TO LANDING)
                                 self.grid[curr_row+1][curr_col] = f"|{top_capsule[1]}|"
                                 self.grid[curr_row+2][curr_col] = f"|{bottom_capsule[1]}|"
-                                self.faller.set_faller_position(curr_row+1, curr_col)
+                                self.faller.set_faller_vertical_position(curr_row+1, curr_col)
                                 self.faller.faller_state = self.LANDING
                     
                     #change faller state to landing if something is under 
                     elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.FALLING:
                         self.grid[curr_row][curr_col] = f"|{top_capsule[1]}|"
                         self.grid[curr_row+1][curr_col] = f"|{bottom_capsule[1]}|"
-                        self.faller.set_faller_position(curr_row, curr_col)
+                        #self.faller.set_faller_position(curr_row, curr_col)
                         self.faller.faller_state = self.LANDING
                     
                     #faller changes from landing to freezing 
                     elif (self.grid[curr_row+2][curr_col] != '   ') and self.faller.faller_state == self.LANDING:
-                        self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
                         print(f"TOP: {top_capsule[1]}")
-                        print(f" BOTTOM: {bottom_capsule[1]}")
+                        print(f"BOTTOM: {bottom_capsule[1]}")
+                        self.grid[curr_row][curr_col] = f" {top_capsule[1]} "
                         self.grid[curr_row+1][curr_col] = f" {bottom_capsule[1]} "
 
                         self.faller.faller_state = self.FREEZING
@@ -564,10 +564,17 @@ class Vitamin:
     def get_faller_position(self):
         return self.row, self.column
     
+    def get_faller_vertical_position(self):
+        return self.top_row, self.column
+    
     # only use this method when using outside of class 
     def set_faller_position(self, row, col):
         self.row = row
-        self.column = col       
+        self.column = col
+
+    def set_faller_vertical_position(self, row, col):
+        self.top_row = row
+        self.column = col        
 
     #wall kick only implemented in rotate faller clockwise so far
     def rotate_faller_clockwise(self, grid):
