@@ -505,15 +505,16 @@ class Vitamin:
                 return
             
             if new_column < grid_column:
-                #if there's something under the lower capsule after moving, change faller state.
+                #if there's something under the lower capsule after moving, change faller state to landing.
                 if (self.top_row + 2 <= rows-1) and (grid[self.top_row + 2][new_column] != '   ') and (self.faller_state == 1):
                     grid[self.top_row][new_column] = f"|{top_capsule[1]}|"
                     grid[self.top_row + 1][new_column] = f"|{bottom_capsule[1]}|"
                     grid[self.top_row][self.column] = '   '
                     grid[self.top_row + 1][self.column] = '   '
                     self.faller_state = 2
+
                 #if it's in landing state, but after moving, it changes to falling state
-                elif (self.faller_state == 2) and (grid[self.top_row + 2][new_column] == '   '):
+                elif (self.top_row + 2 <= rows-1) and (self.faller_state == 2) and (grid[self.top_row + 2][new_column] == '   '):
                     grid[self.top_row][new_column] = f"[{top_capsule[1]}]"
                     grid[self.top_row + 1][new_column] = f"[{bottom_capsule[1]}]"
                     grid[self.top_row][self.column] = '   '
@@ -551,14 +552,10 @@ class Vitamin:
                     grid[self.row][new_right_column] = f"{right_capsule[:-1]}|"
                     grid[self.row][self.column] = '   '
                     self.faller_state = 2
-                    '''#it's in landing state, change it to freezing 
-                    elif self.faller_state == 2:
-                        grid[self.row][new_left_column] = f" {left_capsule[1:]}"
-                        grid[self.row][new_right_column] = f"{right_capsule[:-1]} "
-                        grid[self.row][self.column] = '   '''
+            
                     
                 #if it's in landing state, but after moving, changes to falling state
-                elif (self.faller_state == 2) and (grid[self.row+1][new_left_column] == '   ' and grid[self.row+1][new_right_column] == '   '):
+                elif (self.row+1 <= rows-1) and (self.faller_state == 2) and (grid[self.row+1][new_left_column] == '   ' and grid[self.row+1][new_right_column] == '   '):
                     grid[self.row][new_left_column] = f"[{left_capsule[1:]}"
                     grid[self.row][new_right_column] = f"{right_capsule[:-1]}]"
                     grid[self.row][self.column] = '   '
@@ -600,7 +597,7 @@ class Vitamin:
                     self.faller_state = 2
             
                 #if it's in landing state, but after moving, changes to falling state
-                elif (self.faller_state == 2) and (grid[self.top_row + 2][new_column]  == '   '):
+                elif (self.top_row + 2 <= rows-1) and (self.faller_state == 2) and (grid[self.top_row + 2][new_column]  == '   '):
                     grid[self.top_row][new_column] = f"[{top_capsule[1]}]"
                     grid[self.top_row + 1][new_column] = f"[{bottom_capsule[1]}]"
                     grid[self.top_row][self.column] = '   '
@@ -629,9 +626,9 @@ class Vitamin:
             if new_left_column >= 0:
                 left_capsule = grid[self.row][self.column]
                 right_capsule = grid[self.row][self.column+1]
-                rows = len(grid)
+                max_row_index = len(grid) - 1
                 #if there's something under after moving, change faller state 
-                if (self.row+1 < rows-1) and (grid[self.row+1][new_left_column] != '   ' or grid[self.row+1][new_right_column] != '   ') and self.faller_state == 1:
+                if (self.row+1 <= max_row_index) and (grid[self.row+1][new_left_column] != '   ' or grid[self.row+1][new_right_column] != '   ') and self.faller_state == 1:
                     # if it's currently in falling state, change it to landing 
                     grid[self.row][new_left_column] = f"|{left_capsule[1:]}"
                     grid[self.row][new_right_column] = f"{right_capsule[:-1]}|"
@@ -639,7 +636,7 @@ class Vitamin:
                     self.faller_state = 2
                
                 #if it's in landing state, but after moving, changes to falling state
-                elif (self.faller_state == 2) and (grid[self.row+1][new_left_column] == '   ' and grid[self.row+1][new_right_column] == '   '):
+                elif (self.row+1 <= max_row_index) and (self.faller_state == 2) and (grid[self.row+1][new_left_column] == '   ' and grid[self.row+1][new_right_column] == '   '):
                     grid[self.row][new_left_column] = f"[{left_capsule[1:]}"
                     grid[self.row][new_right_column] = f"{right_capsule[:-1]}]"
                     grid[self.row][self.column+1] = '   '
@@ -680,11 +677,16 @@ class Vitamin:
 
     
     def rotate_faller_clockwise(self, grid):
+        max_row_index = len(grid) - 1
+        max_column_index = len(grid[0]) - 1
         
         if self.direction == 'horizontal':
             left_content = grid[self.row][self.column]
             right_content = grid[self.row][self.column + 1]
             new_top_row = self.row -1
+
+            if new_top_row < 0:
+                return
 
             #if new top row placement is not empty, NOTHING happens and returns 
             if grid[new_top_row][self.column] != '   ':
@@ -694,17 +696,17 @@ class Vitamin:
             grid[self.row][self.column] = '   '
             grid[self.row][self.column+1] = '   '
 
-            next_bottom_capsule = grid[self.row+1][self.column]
+            #next_bottom_capsule = grid[self.row+1][self.column]
 
             #stays falling state
-            if self.faller_state == 1 and (next_bottom_capsule == '   '):
+            if (self.row+1 <= max_row_index) and (self.faller_state == 1) and (grid[self.row+1][self.column] == '   '):
                 #left changes to top 
                 grid[new_top_row][self.column] = f"[{left_content[1]}]"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"[{right_content[1]}]"
 
             #in landing state, but after rotating, changes back to falling state
-            elif self.faller_state == 2 and grid[self.row+1][self.column] == '   ':
+            elif (self.row+1 <= max_row_index) and (self.faller_state == 2) and (grid[self.row+1][self.column] == '   '):
                 #left changes to top 
                 grid[new_top_row][self.column] = f"[{left_content[1]}]"
                 #left changes to bottom 
@@ -724,10 +726,9 @@ class Vitamin:
             
         elif self.direction == 'vertical':
             #check if bottom right cell is empty. IF NOT, apply wall kick
-            grid_column = len(grid[0])
-            if (self.column == grid_column-1) or (grid[self.top_row + 1][self.column+1] != '   '):
+            if (self.column+1 <= max_column_index) and (self.column == max_column_index or grid[self.top_row + 1][self.column+1] != '   '):
                 #check if able to move left for wall kick
-                if grid[self.top_row + 1][self.column-1] == '   ':
+                if (self.column-1 >= 0) and (grid[self.top_row + 1][self.column-1] == '   '):
                     top_content = grid[self.top_row][self.column]
                     bottom_content = grid[self.top_row + 1][self.column]
                     #clear position
@@ -736,12 +737,14 @@ class Vitamin:
                     new_right_column = self.column
                     new_left_column = self.column - 1
 
-                    next_left_capsule = grid[self.top_row+2][new_left_column]
-                    next_right_capsule = grid[self.top_row+2][new_right_column]
+                    #next_left_capsule = grid[self.top_row+2][new_left_column]
+                    #next_right_capsule = grid[self.top_row+2][new_right_column]
 
-                    if self.faller_state == 1 and (next_left_capsule == '   ' and next_right_capsule == '   '):
+                    #after rotating, if the cells under the current capsules are empty, it's falling.
+                    if (self.top_row+2 <= max_row_index) and (self.faller_state == 1) and (grid[self.top_row+2][new_left_column] == '   ' and grid[self.top_row+2][new_left_column] == '   '):
                         grid[self.top_row+1][new_left_column] = f"[{bottom_content[1]}-"
                         grid[self.top_row+1][new_right_column] = f"-{top_content[1]}]"
+                    
                     else: #it's landing
                         grid[self.top_row+1][new_left_column] = f"|{bottom_content[1]}-"
                         grid[self.top_row+1][new_right_column] = f"-{top_content[1]}|"
@@ -757,17 +760,18 @@ class Vitamin:
                 bottom_content = grid[self.top_row + 1][self.column]
 
                 #error checking: if bottom right position is taken, nothing happens and returns 
-                new_right_column = self.column +1
+                #new_right_column = self.column +1
 
-                if grid[self.top_row+1][new_right_column] != '   ':
+                if (self.column +1 <= max_row_index) and (grid[self.top_row+1][self.column +1] != '   '):
                     return
                 #clear position
                 grid[self.top_row][self.column] = '   '
 
-                next_left_capsule = grid[self.top_row+2][self.column]
-                next_right_capsule = grid[self.top_row+2][new_right_column]
+                new_right_column = self.column +1
+                #next_left_capsule = grid[self.top_row+2][self.column]
+                #next_right_capsule = grid[self.top_row+2][new_right_column]
 
-                if self.faller_state == 1 and (next_left_capsule == '   ' and next_right_capsule == '   '):
+                if (self.top_row+2 <= max_row_index) and (self.faller_state == 1) and (grid[self.top_row+2][self.column] == '   ' and grid[self.top_row+2][new_right_column] == '   '):
                     grid[self.top_row+1][self.column] = f"[{bottom_content[1]}-"
                     grid[self.top_row+1][new_right_column] = f"-{top_content[1]}]"
                 else: #it's landing
@@ -779,29 +783,36 @@ class Vitamin:
 
 
     def rotate_faller_counter_clockwise(self, grid):
+        max_row_index = len(grid) - 1
+        max_column_index = len(grid[0]) - 1
+
         if self.direction == 'horizontal':
             left_content = grid[self.row][self.column]
             right_content = grid[self.row][self.column + 1]
-
             new_top_row = self.row -1
+
+            if new_top_row < 0:
+                return
 
             #if new top row placement is not empty, NOTHING happens and returns 
             if grid[new_top_row][self.column] != '   ':
                 return
+            
             #clear current position
+            grid[self.row][self.column] = '   '
             grid[self.row][self.column+1] = '   '
 
-            next_bottom_capsule = grid[self.row+1][self.column]
+            #next_bottom_capsule = grid[self.row+1][self.column]
 
             #faller stays falling 
-            if self.faller_state == 1 and (next_bottom_capsule == '   '):
+            if (self.row+1 <= max_row_index) and (self.faller_state == 1) and (grid[self.row+1][self.column] == '   '):
                 #right changes to top 
                 grid[new_top_row][self.column] = f"[{right_content[1]}]"
                 #left changes to bottom 
                 grid[self.row][self.column] = f"[{left_content[1]}]"
-                
+
             #in landing state, but after rotating, changes back to falling state
-            elif self.faller_state == 2 and grid[self.row+1][self.column] == '   ':
+            elif (self.row+1 <= max_row_index) and (self.faller_state == 2) and (grid[self.row+1][self.column] == '   '):
                 #left changes to top 
                 grid[new_top_row][self.column] = f"[{left_content[1]}]"
                 #left changes to bottom 
@@ -820,11 +831,10 @@ class Vitamin:
 
 
         elif self.direction == 'vertical':
-            grid_column = len(grid[0])
             #check if bottom right cell is empty. IF NOT, apply wall kick
-            if (self.column == grid_column-1) or grid[self.top_row + 1][self.column+1] != '   ':
+            if (self.column+1 <= max_column_index) and (self.column == max_column_index or grid[self.top_row + 1][self.column+1] != '   '):
                 #check if able to move left for wall kick
-                if grid[self.top_row + 1][self.column-1] == '   ':
+                if (self.column-1 >= 0) and (grid[self.top_row + 1][self.column-1] == '   '):
                     top_content = grid[self.top_row][self.column]
                     bottom_content = grid[self.top_row + 1][self.column]
                     #clear position
@@ -833,11 +843,11 @@ class Vitamin:
                     new_right_column = self.column
                     new_left_column = self.column - 1
 
-                    next_left_capsule = grid[self.top_row + 2][new_left_column]
-                    next_right_capsule = grid[self.top_row + 2][new_right_column]
+                    #next_left_capsule = grid[self.top_row + 2][new_left_column]
+                    #next_right_capsule = grid[self.top_row + 2][new_right_column]
 
-
-                    if self.faller_state == 1 and (next_left_capsule == '   ' and next_right_capsule == '   '):
+                    #after rotating, if the cells under the current capsules are empty, it's falling.
+                    if (self.top_row+2 <= max_row_index) and (self.faller_state == 1) and (grid[self.top_row + 2][new_left_column] == '   ' and grid[self.top_row + 2][new_right_column] == '   '):
                         grid[self.top_row+1][new_right_column] = f"-{bottom_content[1]}]"
                         grid[self.top_row+1][new_left_column] = f"[{top_content[1]}-"
                     else: #it's landing
@@ -845,9 +855,8 @@ class Vitamin:
                         grid[self.top_row+1][new_left_column] = f"|{top_content[1]}-"
                         self.faller_state = 2
                     
-                    self.column = new_left_column
-
                     self.direction = 'horizontal'
+                    self.column = new_left_column
 
                     #self.row = self.top_row+ 1
                 else:
@@ -856,19 +865,19 @@ class Vitamin:
             else: #vertical and no wall kick
                 top_content = grid[self.top_row][self.column]
                 bottom_content = grid[self.top_row + 1][self.column]
-                new_right_column = self.column +1
+                #new_right_column = self.column +1
 
                 #error checking: if bottom right position is taken, nothing happens and returns 
-                if grid[self.top_row + 1][new_right_column] != '   ':
+                if (self.column +1 <= max_row_index) and (grid[self.top_row + 1][self.column +1] != '   '):
                     return
 
                 #clear position
                 grid[self.top_row][self.column] = '   '
 
-                next_left_capsule = grid[self.top_row + 2][self.column]
-                next_right_capsule = grid[self.top_row + 2][new_right_column]
+                #next_left_capsule = grid[self.top_row + 2][self.column]
+                #next_right_capsule = grid[self.top_row + 2][new_right_column]
 
-                if self.faller_state == 1 and (next_left_capsule == '   ' and next_right_capsule == '   '):
+                if (self.top_row+2 <= max_row_index) and (self.faller_state == 1) and (grid[self.top_row + 2][self.column] == '   ' and grid[self.top_row + 2][new_right_column] == '   '):
                     grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}]"
                     grid[self.top_row + 1][self.column] = f"[{top_content[1]}-"
                 else: #it's landing
