@@ -128,6 +128,8 @@ class GameBoard:
             if self.faller.direction == 'horizontal':
                 curr_row = self.faller.row
                 curr_col = self.faller.column
+                curr_top_row = self.faller.top_row
+                curr_top_col = self.faller.column
 
                 left_capsule = self.grid[curr_row][curr_col]
                 right_capsule = self.grid[curr_row][curr_col+1]
@@ -139,6 +141,7 @@ class GameBoard:
                         self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
                         self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
                         self.faller.set_faller_position(curr_row+1, curr_col)
+                        self.faller.set_faller_vertical_position(curr_top_row+1, curr_top_col)
                         self.faller.faller_state = self.LANDING
 
                         #clear old position
@@ -151,6 +154,7 @@ class GameBoard:
                         self.grid[curr_row+1][curr_col] = left_capsule
                         self.grid[curr_row+1][curr_col+1] = right_capsule
                         self.faller.set_faller_position(curr_row+1, curr_col)
+                        self.faller.set_faller_vertical_position(curr_top_row+1, curr_top_col)
 
                         #clear old position
                         self.grid[curr_row][curr_col] = '   '
