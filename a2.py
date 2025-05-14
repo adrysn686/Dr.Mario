@@ -1,7 +1,10 @@
 import shlex
 from gameboard import GameBoard
 
-def main():
+def main() -> None:
+    '''
+    This is the main function for user to input different commands. 
+    '''
     rows = int(input())
     columns = int(input())
     create_board_command = input()

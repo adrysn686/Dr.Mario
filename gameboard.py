@@ -589,7 +589,7 @@ class GameBoard:
         """
 
         Virus is created from user inputting the row, column, and color
-        they want their virus to be placed in 
+        they want their virus to be placed in.
         
         Args:
             - command_lst (list): includes virus's row and column + color for parsing 
@@ -604,8 +604,14 @@ class GameBoard:
         color = command_lst[3].lower()
         a_virus = Virus(row, column, color)
         self.virus_lst.append(a_virus)
+        
         if self.grid[row][column] == '   ':
             self.grid[row][column] = f' {color} '
+        
+        else:
+            self.print_grid()
+            return
+        
         if not self.matches():
             self.print_grid()
 
