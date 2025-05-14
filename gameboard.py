@@ -873,6 +873,7 @@ class Vitamin:
 
                 #clear position
                 grid[self.top_row][self.column] = '   '
+                new_right_column = self.column +1
 
                 #next_left_capsule = grid[self.top_row + 2][self.column]
                 #next_right_capsule = grid[self.top_row + 2][new_right_column]
