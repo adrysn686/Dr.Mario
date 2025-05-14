@@ -1,3 +1,5 @@
+import sys
+
 class GameBoard:
     FALLING = 1
     LANDING = 2
@@ -98,7 +100,7 @@ class GameBoard:
             self.gameover = True
             self.print_grid()
             print("GAME OVER")
-            return
+            sys.exit()
         
         #landing since there's something under 
         elif self.grid[row_pos+1][middle_col] != '   ' or self.grid[row_pos+1][middle_col+1] != '   ':
@@ -166,7 +168,6 @@ class GameBoard:
                 if curr_row < self.rows-1:
                     #checking if during falling it's going to land on the last row OR if there's something under. If so, change state to landing 
                     if self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING and (curr_row+1 == self.rows-1 or (self.grid[curr_row+2][curr_col] != '   ' or self.grid[curr_row+2][curr_col+1] != '   ')):
-                        #print('g00')
                         self.grid[curr_row+1][curr_col] = f"|{left_capsule[1:]}"
                         self.grid[curr_row+1][curr_col+1] = f"{right_capsule[:-1]}|"
                         self.faller.set_faller_position(curr_row+1, curr_col)
@@ -179,7 +180,6 @@ class GameBoard:
 
                     #place capsules in new positions 
                     elif self.grid[curr_row+1][curr_col] == '   ' and self.grid[curr_row+1][curr_col+1] == '   ' and self.faller.faller_state == self.FALLING:
-                        #print('g100')
                         self.grid[curr_row+1][curr_col] = left_capsule
                         self.grid[curr_row+1][curr_col+1] = right_capsule
                         self.faller.set_faller_position(curr_row+1, curr_col)
@@ -192,7 +192,6 @@ class GameBoard:
                     
                     #change faller state to landing if something is under 
                     elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.FALLING:
-                        #print('g200')
                         self.grid[curr_row][curr_col] = f"|{left_capsule[1:]}"
                         self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]}|"
 
@@ -200,7 +199,6 @@ class GameBoard:
                     
                     #faller changes from landing to freezing 
                     elif (self.grid[curr_row+1][curr_col] != '   ' or self.grid[curr_row+1][curr_col+1] != '   ') and self.faller.faller_state == self.LANDING:
-                        #print('g300')
                         self.grid[curr_row][curr_col] = f" {left_capsule[1:]}"
                         self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]} "
 
@@ -210,13 +208,11 @@ class GameBoard:
                 #this is when faller is in the last row 
                 elif curr_row == self.rows-1:
                     if self.faller.faller_state == self.FALLING:
-                        #print('g400')
                         self.grid[curr_row][curr_col] = f"|{left_capsule[1:]}"
                         self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]}|"
 
                         self.faller.faller_state = self.LANDING
                     elif self.faller.faller_state == self.LANDING:
-                        #print('g500')
                         self.grid[curr_row][curr_col] = f" {left_capsule[1:]}"
                         self.grid[curr_row][curr_col+1] = f"{right_capsule[:-1]} "
 
@@ -245,7 +241,6 @@ class GameBoard:
                         self.grid[curr_row][curr_col] = '   '
                         self.grid[curr_row+1][curr_col] = '   '
 
-                        #if curr_row < self.rows-3:
                         if curr_row < self.rows-3 and self.grid[curr_row+3][curr_col] == '   ':
                             #place capsules in new positions (STAYS FALLING STATE)
                             self.grid[curr_row+1][curr_col] = top_capsule
@@ -555,7 +550,6 @@ class GameBoard:
                     self.grid[row][column] = self.grid[row][column].replace('-', '').strip()
             self.grid[row][column] = f"*{self.grid[row][column].strip()}*"
         if isMatch is True:
-            #print('match1')
             self.print_grid()
             
         for row, column in matches:
@@ -563,7 +557,6 @@ class GameBoard:
                 #if the cell next to the ones after matching have '-' in it, 
                 #we know it's a double capsule that changes to a single capsule
                 if '-' in self.grid[row][column+1]:
-                    #print('match2')
                     self.grid[row][column+1] = self.grid[row][column+1].upper().replace('-', ' ')
                     isConnected = True 
     
@@ -710,7 +703,6 @@ class Vitamin:
                     grid[self.top_row][self.column] = '   '
                     grid[self.top_row + 1][self.column] = '   '
                 
-                #not sure if this should be placed here 
                 self.column = new_column
             else:
                 return
@@ -743,13 +735,12 @@ class Vitamin:
                     grid[self.row][self.column] = '   '
                     self.faller_state = 1
                 
-                #if there's nothing under, so faller state remains the same 
+                #if there's nothing under, faller state remains the same 
                 else:
                     grid[self.row][new_left_column] = left_capsule
                     grid[self.row][new_right_column] = right_capsule
                     grid[self.row][self.column] = '   '
 
-                #not sure if this should be placed here 
                 self.column = new_left_column
                 
             else:
@@ -1139,14 +1130,12 @@ class Vitamin:
                     self.direction = 'horizontal'
                     self.column = new_left_column
 
-                    #self.row = self.top_row+ 1
                 else:
                     #this is when wall kick should be applied but there's something on the left, so do nothing
                     return 
             else: #vertical and no wall kick
                 top_content = grid[self.top_row][self.column]
                 bottom_content = grid[self.top_row + 1][self.column]
-                #new_right_column = self.column +1
 
                 #error checking: if bottom right position is taken, nothing happens and returns 
                 if (self.column +1 <= max_row_index) and (grid[self.top_row + 1][self.column +1] != '   '):
@@ -1155,9 +1144,6 @@ class Vitamin:
                 #clear position
                 grid[self.top_row][self.column] = '   '
                 new_right_column = self.column +1
-
-                #next_left_capsule = grid[self.top_row + 2][self.column]
-                #next_right_capsule = grid[self.top_row + 2][new_right_column]
 
                 if (self.top_row+2 <= max_row_index) and (self.faller_state == 1) and (grid[self.top_row + 2][self.column] == '   ' and grid[self.top_row + 2][new_right_column] == '   '):
                     grid[self.top_row + 1][new_right_column] = f"-{bottom_content[1]}]"
