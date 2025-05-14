@@ -199,6 +199,8 @@ class GameBoard:
             elif self.faller.direction == 'vertical':
                 curr_row = self.faller.top_row
                 curr_col = self.faller.column
+                curr_left_row = self.faller.row
+                curr_left_col = self.faller.column
 
                 top_capsule = self.grid[curr_row][curr_col]
                 bottom_capsule = self.grid[curr_row+1][curr_col]
@@ -216,12 +218,14 @@ class GameBoard:
                             self.grid[curr_row+1][curr_col] = top_capsule
                             self.grid[curr_row+2][curr_col] = bottom_capsule
                             self.faller.set_faller_vertical_position(curr_row+1, curr_col)
+                            self.faller.set_faller_position(curr_left_row+1, curr_left_col)
                 
                         else:
                             #place capsules in new positions (CHANGES TO LANDING)
                             self.grid[curr_row+1][curr_col] = f"|{top_capsule[1]}|"
                             self.grid[curr_row+2][curr_col] = f"|{bottom_capsule[1]}|"
                             self.faller.set_faller_vertical_position(curr_row+1, curr_col)
+                            self.faller.set_faller_position(curr_left_row+1, curr_left_col)
                             self.faller.faller_state = self.LANDING
                     
                     #change faller state to landing if something is under 
