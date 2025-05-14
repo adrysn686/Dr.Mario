@@ -3,7 +3,18 @@ class GameBoard:
     LANDING = 2
     FREEZING = 3
 
-    def __init__(self, rows, columns, row_list=None):
+    def __init__(self, rows: int, columns: int, row_list=None):
+        """
+
+        This constructor intializes the game board, depending on whether
+        user inputted 'EMPTY' or 'CONTENTS'.
+
+        Args:
+            - rows (int): number of rows on the board
+            - columns (int): number of columns on the board
+            - row_list : None
+
+        """
         self.rows = rows
         self.columns = columns
         self.grid = []
@@ -44,11 +55,18 @@ class GameBoard:
                 self.print_grid()
 
     
-    def create_faller(self, command_lst):
-        '''if self.gravity_happening:
-            self.print_grid()
-            return'''
+    def create_faller(self, command_lst: list) -> None:
+        """
 
+        Creates a faller from 'F' command.
+        
+        Args:
+            - command_lst (list): includes colors for parsing
+        
+        Returns:
+            - None
+
+        """
         for row in range(self.rows):
             for column in range(self.columns):
                 cell = self.grid[row][column]
@@ -97,7 +115,18 @@ class GameBoard:
             self.print_grid()
 
 
-    def time(self):
+    def time(self) -> None:
+        """
+
+        Each time user inputs an enter, it represents time passing in the game. This could cause faller to change states and move down. 
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         #when faller is frozen
         if self.faller is None:
             #check matches first
@@ -268,7 +297,19 @@ class GameBoard:
                 self.print_grid()
                 
  
-    def gravity(self):
+    def gravity(self) -> None:
+        """
+
+        Gravity happens everytime matching occurs. 
+        Capsules on the board fall down if it is possible.
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         isGravity = False
         for row in range(self.rows-2, -1, -1):
             for column in range(self.columns):
@@ -309,7 +350,18 @@ class GameBoard:
             self.print_grid()
         self.gravity_happening = isGravity
 
-    def is_board_empty(self):
+    def is_board_empty(self) -> None:
+        """
+
+        Checks if the grid is empty. 
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         isEmpty = False
         for row in range(self.rows):
             for column in range(self.columns):
@@ -322,7 +374,19 @@ class GameBoard:
         return isEmpty
 
     
-    def is_board_frozen(self):
+    def is_board_frozen(self) -> None:
+        """
+
+        Checks if the current board is frozen by applying gravity to it
+        and seeing if anything changes. 
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         all_frozen = False
         copy_grid = [row[:] for row in self.grid]
         isGravity = False
@@ -366,7 +430,19 @@ class GameBoard:
             all_frozen = True
         return all_frozen
 
-    def rotate_gameboard_counter_clockwise(self):
+    def rotate_gameboard_counter_clockwise(self) -> None:
+        """
+
+        Vitamin capsule rotates counter clockwise by calling the 
+        rotate_faller_counter_clockwise method in the Vitamin class.
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         if self.faller is None:
             self.print_grid()
         else:
@@ -374,7 +450,19 @@ class GameBoard:
                 self.faller.rotate_faller_counter_clockwise(self.grid)
                 self.print_grid()
 
-    def rotate_gameboard_clockwise(self):
+    def rotate_gameboard_clockwise(self) -> None:
+        """
+
+        Vitamin capsule rotates clockwise by calling the 
+        rotate_faller_clockwise method in the Vitamin class.
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         if self.faller is None:
             self.print_grid()
         else:
@@ -382,7 +470,19 @@ class GameBoard:
                 self.faller.rotate_faller_clockwise(self.grid)
                 self.print_grid()
     
-    def move_right(self):
+    def move_right(self) -> None:
+        """
+
+        Vitamin capsule moves right by calling the 
+        move_right method in the Vitamin class.
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         if self.faller is None:
             self.print_grid()
         else:
@@ -390,7 +490,19 @@ class GameBoard:
                 self.faller.move_right(self.grid)
                 self.print_grid()
 
-    def move_left(self):
+    def move_left(self) -> None:
+        """
+
+        Vitamin capsule moves left by calling the 
+        move_left method in the Vitamin class.
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         if self.faller is None:
             self.print_grid()
         else:
@@ -399,6 +511,18 @@ class GameBoard:
                 self.print_grid()
 
     def matches(self):
+        """
+
+        Matching happens after 4 or more viruses or capsules with the same color are right next
+        to each other. They match first, then disappear.
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         isMatch = False
         isConnected = False
         matches = set()
@@ -459,14 +583,22 @@ class GameBoard:
                 del self.virus_lst[i]
             else:
                 i += 1
-        #return isMatch
-        #self.gravity()
 
 
-    def create_virus(self, command_lst):
-        '''if self.gravity_happening:
-            self.print_grid()
-            return'''
+    def create_virus(self, command_lst: list) -> None:
+        """
+
+        Virus is created from user inputting the row, column, and color
+        they want their virus to be placed in 
+        
+        Args:
+            - command_lst (list): includes virus's row and column + color for parsing 
+        
+        Returns:
+            - None
+
+        """
+        
         row = int(command_lst[1])
         column = int(command_lst[2])
         color = command_lst[3].lower()
@@ -478,7 +610,19 @@ class GameBoard:
             self.print_grid()
 
 
-    def print_grid(self):  
+    def print_grid(self) -> None:  
+        """
+
+        Prints the grid and also prints level cleared
+        if no viruses remain on the board. 
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         for row in range(len(self.grid)):
             print('|', end='')
             columns = len(self.grid[0])
@@ -491,7 +635,20 @@ class GameBoard:
 
 
 class Vitamin:
-    def __init__(self, row, column, left_color, right_color, faller_state):
+    def __init__(self, row: int, column: int, left_color: str, right_color: str, faller_state: int):
+        """
+
+        This constructor intializes a vitamin capsule, including the left color, right color,
+        row, column, and faller state.
+
+        Args:
+            - rows (int): number of rows on the board
+            - columns (int): number of columns on the board
+            - left_color (str): letter denoting vitamin color 
+            - right_color (str): letter denoting vitamin color 
+            - faller_state (int): 1 = FALLING, 2 = LANDING, 3 = FREEZING
+
+        """
         self.row = row
         self.column = column
         self.top_row = row
@@ -500,7 +657,18 @@ class Vitamin:
         self.faller_state = faller_state
         self.direction = 'horizontal'
 
-    def move_right(self, grid):
+    def move_right(self, grid: list) -> None:
+        """
+
+        Moves the vitamin capsule to the right
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
         grid_column = len(grid[0])
         if self.direction == 'vertical':
             new_column = self.column + 1
@@ -581,7 +749,18 @@ class Vitamin:
             else:
                 return
     
-    def move_left(self, grid):
+    def move_left(self, grid: list) -> None:
+        """
+
+        Moves the vitamin capsule to the left
+        
+        Args:
+            - None
+        
+        Returns:
+            - None
+
+        """
 
         grid_column = len(grid[0])
 
@@ -662,29 +841,107 @@ class Vitamin:
                 return
 
 
-    def get_direction(self):
+    def get_direction(self) -> str:
+        """
+
+        Gets the direction of the vitamin capsule 
+        
+        Args:
+            - None
+        
+        Returns:
+            - self.direction (str): returns the direction of the vitamin capsule
+
+        """
         return self.direction
     
-    def set_direction(self, direction):
+    def set_direction(self, direction: str) -> None:
+        """
+
+        Sets the direction of the vitamin capsule 
+        
+        Args:
+            - direction (str): sets the direction of the vitamin capsule
+        
+        Returns:
+            - None
+
+        """
         self.direction = direction
    
-    def get_faller_position(self):
+    def get_faller_position(self) -> tuple[int, int]:
+        """
+
+        Gets the faller position of the vitamin capsule 
+        
+        Args:
+            - None
+        
+        Returns:
+            - A tuple of (row, column), both integers
+
+        """
         return self.row, self.column
     
-    def get_faller_vertical_position(self):
+    def get_faller_vertical_position(self) -> tuple[int, int]:
+        """
+
+        Gets the faller vertical position of the vitamin capsule 
+        
+        Args:
+            - None
+        
+        Returns:
+            - A tuple of (top_row, column), both integers
+
+        """
         return self.top_row, self.column
     
     # only use this method when using outside of class 
-    def set_faller_position(self, row, col):
+    def set_faller_position(self, row: int, col: int) -> None:
+        """
+
+        Sets the position of the vitamin capsule 
+        
+        Args:
+            - row (int)
+            - column (int)
+        
+        Returns:
+            - None
+
+        """
         self.row = row
         self.column = col
 
-    def set_faller_vertical_position(self, row, col):
+    def set_faller_vertical_position(self, row: int, col: int) -> None:
+        """
+
+        Sets the vertical position of the vitamin capsule 
+        
+        Args:
+            - row (int)
+            - column (int)
+        
+        Returns:
+            - None
+
+        """
         self.top_row = row
         self.column = col        
 
     
-    def rotate_faller_clockwise(self, grid):
+    def rotate_faller_clockwise(self, grid: list) -> None: 
+        """
+
+       Rotates the vitamin capsule clockwise
+        
+        Args:
+            - grid (nested list of the 2D board)
+        Returns:
+            - None
+
+        """
         max_row_index = len(grid) - 1
         max_column_index = len(grid[0]) - 1
         
@@ -790,7 +1047,17 @@ class Vitamin:
                 self.direction = 'horizontal'
 
 
-    def rotate_faller_counter_clockwise(self, grid):
+    def rotate_faller_counter_clockwise(self, grid: list) -> None:
+        """
+
+       Rotates the vitamin capsule counter clockwise
+        
+        Args:
+            - grid (nested list of the 2D board)
+        Returns:
+            - None
+
+        """
         max_row_index = len(grid) - 1
         max_column_index = len(grid[0]) - 1
 
@@ -897,7 +1164,17 @@ class Vitamin:
                 self.direction = 'horizontal'
 
 class Virus:
-    def __init__(self, row, column, color):
+    def __init__(self, row: int, column: int, color: str) -> None:
+        """
+
+        This constructor intializes a virus 
+
+        Args:
+            - rows (int): number of rows on the board
+            - columns (int): number of columns on the board
+            - color (str): letter denoting virus color 
+
+        """
         self.row = row
         self.column = column
         self.color = color
