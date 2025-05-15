@@ -302,7 +302,7 @@ class GameBoard:
         for row in range(self.rows-2, -1, -1):
             for column in range(self.columns):
                 current_cell = self.grid[row][column].strip()
-                if current_cell == '   ':
+                if current_cell == '':
                     continue
                 elif '-' in current_cell:
                     current_row = row
@@ -312,8 +312,9 @@ class GameBoard:
                             column + 1 < self.columns and
                             self.grid[current_row + 1][column] == '   ' and
                             self.grid[current_row + 1][column - 1] == '   '):
-                                self.grid[current_row + 1][column] = f" {current_cell} "
-                                self.grid[current_row + 1][column - 1] = f" {self.grid[row][column - 1]} "
+                                left_cell = self.grid[row][column - 1].strip()
+                                self.grid[current_row + 1][column] = f"{current_cell} "
+                                self.grid[current_row + 1][column - 1] = f" {left_cell}"
                                 self.grid[current_row][column] = '   '
                                 self.grid[current_row][column - 1] = '   '
                                 isGravity = True
@@ -322,8 +323,9 @@ class GameBoard:
                         column + 1 < self.columns and
                         self.grid[current_row + 1][column] == '   ' and
                         self.grid[current_row + 1][column + 1] == '   '):
-                            self.grid[current_row + 1][column] = f" {current_cell} "
-                            self.grid[current_row + 1][column + 1] = f" {self.grid[row][column + 1]} "
+                            right_cell = self.grid[row][column + 1].strip()
+                            self.grid[current_row + 1][column] = f" {current_cell}"
+                            self.grid[current_row + 1][column + 1] = f"{right_cell} "
                             self.grid[current_row][column] = '   '
                             self.grid[current_row][column + 1] = '   '
                             isGravity = True
@@ -535,9 +537,12 @@ class GameBoard:
             if column+1 < self.columns:
                 #if the cell next to the ones after matching have '-' in it, 
                 #we know it's a double capsule that changes to a single capsule
-                if '-' in self.grid[row][column+1]:
+                if self.grid[row][column+1].startswith('-'):
                     self.grid[row][column+1] = self.grid[row][column+1].upper().replace('-', ' ')
-                    isConnected = True 
+                    isConnected = True
+                elif (column-1 > 0) and (self.grid[row][column-1].endswith('-')):
+                    self.grid[row][column-1] = self.grid[row][column-1].upper().replace('-', ' ')
+                    isConnected = True
     
             self.grid[row][column] = '   '
             for virus in self.virus_lst:
