@@ -5,7 +5,7 @@ class GameBoard:
     LANDING = 2
     FREEZING = 3
 
-    def __init__(self, rows: int, columns: int, row_list=None):
+    def __init__(self, rows: int, columns: int, row_list=None) -> None:
         """
         This constructor intializes the game board, depending on whether
         user inputted 'EMPTY' or 'CONTENTS'.
@@ -608,7 +608,7 @@ class GameBoard:
 
 
 class Vitamin:
-    def __init__(self, row: int, column: int, left_color: str, right_color: str, faller_state: int):
+    def __init__(self, row: int, column: int, left_color: str, right_color: str, faller_state: int) -> None:
         """
         This constructor intializes a vitamin capsule, including the left color, right color,
         row, column, and faller state.
@@ -1108,7 +1108,7 @@ class Vitamin:
                 self.direction = 'horizontal'
 
 class Virus:
-    def __init__(self, row: int, column: int, color: str):
+    def __init__(self, row: int, column: int, color: str) -> None:
         """
         This constructor intializes a virus 
 
