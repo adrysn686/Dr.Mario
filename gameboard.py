@@ -1,11 +1,12 @@
 import sys
+from typing import Optional, List
 
 class GameBoard:
     FALLING = 1
     LANDING = 2
     FREEZING = 3
 
-    def __init__(self, rows: int, columns: int, row_list=None) -> None:
+    def __init__(self, rows: int, columns: int, row_list: Optional[List] = None) -> None: 
         """
         This constructor intializes the game board, depending on whether
         user inputted 'EMPTY' or 'CONTENTS'.
@@ -886,7 +887,7 @@ class Vitamin:
     
     def rotate_faller_clockwise(self, grid: list) -> None: 
         """
-       Rotates the vitamin capsule clockwise
+        Rotates the vitamin capsule clockwise
         
         Args:
             - grid (nested list of the 2D board)
@@ -1121,3 +1122,27 @@ class Virus:
         self.column = column
         self.color = color
         self.is_remove = False
+    
+    def get_state(self) -> bool:
+        '''
+        This method gets the state of the virus
+        to see whether or not it is removed.
+
+        Args:
+            - None
+        Returns:
+            - self.is_remove (bool): virus state 
+        '''
+        return self.is_remove
+    
+    def set_state(self, is_remove:bool) -> None:
+        '''
+        This method sets the state of the virus
+        
+        Args:
+            - self.is_remove (bool): virus state 
+        Returns:
+            - None
+
+        '''
+        self.is_remove = is_remove
